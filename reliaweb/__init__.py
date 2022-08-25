@@ -1,10 +1,13 @@
 from flask import Flask
 from flask_redis import FlaskRedis
 
+from weblablib import WebLab
+
 from config import configurations
 
 # Plugins
 redis_store = FlaskRedis()
+weblab = WebLab()
 
 
 def create_app(config_name: str = 'default'):
@@ -15,6 +18,7 @@ def create_app(config_name: str = 'default'):
 
     # Initialize plugins
     redis_store.init_app(app)
+    weblab.init_app(app)
 
 
     # Register views
