@@ -1,4 +1,5 @@
 import json
+import time
 
 from flask import Blueprint, jsonify, render_template
 
@@ -24,14 +25,29 @@ def get_data(device_identifier, block_identifier):
 
     block_key = f'relia:data-uploader:sessions:{session_identifier}:devices:{device_identifier}:blocks:{block_identifier}'
     
-    empty = False
+
+    initial_time = time.time()
     data = None
-    while not empty:
-        newest_data = redis_store.lpop(block_key)
-        if newest_data is None:
-            empty = True
-        else:
-            data = newest_data
+    while True:
+
+        empty = False
+        while not empty:
+            newest_data = redis_store.lpop(block_key)
+            if newest_data is None:
+                empty = True
+            else:
+                data = newest_data
+
+        if data:
+            # If there is data, we exit immediately
+            break
+
+        if time.time() - initial_time > 5:
+            # If we have been waiting for more than 5 seconds
+            # then exit (even without data)
+            break
+
+        time.sleep(0.05)        
 
     if data is None:
         return jsonify(success=True, data=None)
