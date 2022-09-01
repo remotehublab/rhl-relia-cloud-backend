@@ -13,8 +13,15 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			title: 'Time (milliseconds)'
 		},
 		vAxis: {
-			title: 'Amplitude',
-        	}
+			title: 'Amplitude2',
+        	},
+        explorer: {
+        	actions: ['dragToZoom', 'rightClickToReset'],
+        	axis: 'horizontal',
+        	keepInBounds: true,
+        	maxZoomIn: 4.0,
+        	colors: ['#D44E41'],
+        },
 	};
 
 	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
@@ -51,6 +58,23 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 				imagData[pos] = parseFloat(value);
 			});
 
+			var enable_Re;
+        	if($("#kolom1").is(':checked'))  {
+        		enable_Re=1; }
+        	else { 
+        		enable_Re=0; 
+        		realData= new Array(realData.length).fill(null);
+        	}
+        		
+			var enable_Im;
+        	if($("#kolom2").is(':checked'))  {
+        		enable_Im=1; }
+        	else { 
+        		enable_Im=0; 
+//        	 	imagData=Array(realData.length).fill(null);
+        	 }
+        		
+
 			var formattedData = [
 				["Point", "Real", "Imag"]
 			];
@@ -58,7 +82,7 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			var timePerSample = 1000.0 / params.srate; // in milliseconds
 
 			for (var pos = 0; pos < realData.length; ++pos) {
-				formattedData.push([ pos * timePerSample, realData[pos], imagData[pos]]);
+				formattedData.push([ pos * timePerSample, enable_Re*realData[pos], enable_Im*imagData[pos]]);
 			}
 
 			var dataTable = google.visualization.arrayToDataTable(formattedData);
