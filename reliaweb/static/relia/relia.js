@@ -58,31 +58,56 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 				imagData[pos] = parseFloat(value);
 			});
 
-			var enable_Re;
-        	if($("#kolom1").is(':checked'))  {
-        		enable_Re=1; }
+			var enableReal;
+        	if($("#time-sink-real-checkbox").is(':checked'))  {
+        		enableReal = true; }
         	else { 
-        		enable_Re=0; 
+        		enableReal = false; 
         		realData= new Array(realData.length).fill(null);
         	}
         		
-			var enable_Im;
-        	if($("#kolom2").is(':checked'))  {
-        		enable_Im=1; }
+			var enableImag;
+        	if($("#time-sink-imag-checkbox").is(':checked'))  {
+        		enableImag = true; }
         	else { 
-        		enable_Im=0; 
+        		enableImag = false; 
 //        	 	imagData=Array(realData.length).fill(null);
         	 }
+			if (!enableReal && !enableImag) {
+				console.log("Error: activate real or imag");
+				return;
+			}
         		
+			var columns = ["Point"];
+		        self.options['series'] = {};
+
+			var counter = 0;
+
+			if (enableReal) {
+				columns.push("Real");
+				self.options.series[counter] = '#e2431e';
+				counter++;
+			}
+			if (enableImag) {
+				columns.push("Imag");
+				self.options.series[counter] = '#1c91c0';
+			}
+
+			console.log(self.options);
 
 			var formattedData = [
-				["Point", "Real", "Imag"]
+				columns
 			];
 
 			var timePerSample = 1000.0 / params.srate; // in milliseconds
 
 			for (var pos = 0; pos < realData.length; ++pos) {
-				formattedData.push([ pos * timePerSample, enable_Re*realData[pos], enable_Im*imagData[pos]]);
+				var currentRow = [pos * timePerSample];
+				if (enableReal)
+					currentRow.push(realData[pos]);
+				if (enableImag)
+					currentRow.push(imagData[pos]);
+				formattedData.push(currentRow);
 			}
 
 			var dataTable = google.visualization.arrayToDataTable(formattedData);
