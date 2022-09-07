@@ -20,7 +20,6 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
         	axis: 'horizontal',
         	keepInBounds: true,
         	maxZoomIn: 4.0,
-        	colors: ['#D44E41'],
         },
 	};
 
