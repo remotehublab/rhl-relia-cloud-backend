@@ -2,28 +2,43 @@
   <head>
   </head>
   <body>
-    <div id="ourdemo" style="width: 900px; height: 500px"></div>
+    <div id="ourdemo2" style="width: 500px; height: 500px"></div>
+    <div id="ourdemo" style="width: 500px; height: 500px"></div>
 
-
+	
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='relia/relia.js') }}"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(loadRelia);
+      google.charts.setOnLoadCallback(loadReliaTimeSink);
+      google.charts.setOnLoadCallback(loadReliaConstellationSink);
 
       window.API_BASE_URL = "{{ url_for('api.index') }}";
-      
-      function loadRelia() {
-	 var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
-         sink.redraw();
-      }
-    </script>
 
+      function loadReliaTimeSink() {
+	 /* var sink = new ReliaConstellationSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
+         sink.redraw(); /*  */
+	  var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
+         sink.redraw();     /*  */
+         }
+      function loadReliaConstellationSink() {
+	  var sink = new ReliaConstellationSink("ourdemo2", "my-device-id", "RELIA Time Sink(1)");
+         sink.redraw(); /*  */
+	  /*var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
+         sink.redraw();     /*  */
+         }
+         
+    </script>
+    
+  <body>
+  <body>
+        <!--Divs that will hold the charts-->
+        <div id="ourdemo"></div>
+        <div id="ourdemo2"></div>
   </body>
 </html>
 
-
-
+ 
 <input type="checkbox" class="checkbox"  id="time-sink-real-checkbox" checked> Real<br>
 <input type="checkbox" class="checkbox"  id="time-sink-imag-checkbox" checked> Imag<br>
