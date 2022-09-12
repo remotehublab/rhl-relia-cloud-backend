@@ -2,8 +2,9 @@
   <head>
   </head>
   <body>
-    <div id="ourdemo2" style="width: 500px; height: 500px"></div>
-    <div id="ourdemo" style="width: 500px; height: 500px"></div>
+    <div id="timesink1" style="width: 100%; height: 500px"></div>
+    <div id="constellation1" style="width: 100%; height: 500px"></div>
+    <div id="constellation2" style="width: 100%; height: 500px"></div>
 
 	
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -11,24 +12,35 @@
     <script type="text/javascript" src="{{ url_for('static', filename='relia/relia.js') }}"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(loadReliaTimeSink);
-      google.charts.setOnLoadCallback(loadReliaConstellationSink);
+      google.charts.setOnLoadCallback(loadWidgets);
 
       window.API_BASE_URL = "{{ url_for('api.index') }}";
 
       function loadReliaTimeSink() {
 	 /* var sink = new ReliaConstellationSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
          sink.redraw(); /*  */
-	  var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
+	  var sink = new ReliaTimeSink("timesink1", "my-device-id", "RELIA Time Sink(1)");
          sink.redraw();     /*  */
          }
-      function loadReliaConstellationSink() {
-	  var sink = new ReliaConstellationSink("ourdemo2", "my-device-id", "RELIA Constellation Sink(1)");
+      function loadReliaConstellation1() {
+	  var sink = new ReliaConstellationSink("constellation1", "my-device-id", "RELIA Constellation Sink(1)");
          sink.redraw(); /*  */
 	  /*var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
          sink.redraw();     /*  */
          }
-         
+      function loadReliaConstellation2() {
+	  var sink = new ReliaConstellationSink("constellation2", "my-device-id", "RELIA Constellation Sink(2)");
+         sink.redraw(); /*  */
+	  /*var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
+         sink.redraw();     /*  */
+         }
+
+	function loadWidgets() {
+		loadReliaTimeSink();
+		loadReliaConstellation1();
+		loadReliaConstellation2();
+	}
+        
     </script>
     
   <body>
