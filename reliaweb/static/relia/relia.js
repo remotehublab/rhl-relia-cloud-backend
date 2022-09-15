@@ -1,20 +1,83 @@
 function Relia() {
+
 }
+
+function TimSinkPauseRun() { 
+  if( flagTimer=='pause')
+  {
+    flagTimer='run';
+    document.getElementById('PauseRun').value="Play";
+  }
+  else
+  {
+    flagTimer='pause';
+    document.getElementById('PauseRun').value="Pause";
+  }
+  
+}
+
+function TimeSink_NoiseSlide(val) {
+          document.getElementById('textInput').value=val/100.0; 
+          NoiseFactorTimeSink=val*(max_TimeSink_Re-min_TimeSink_Re)/100;
+        }
+
+function TimSinkZoomOutClick()
+	{
+	ZoomOutTimeSink=ZoomOutTimeSink+1 //i'm not very sure about this, but it may work.   
+}  
+
+function TimSinkZoomInClick()
+	{
+	ZoomInTimeSink=ZoomInTimeSink+1 //i'm not very sure about this, but it may work.   
+}  
+
+function TimSinkAutoScaleClick()
+	{
+	ZoomOutTimeSink=1 //i'm not very sure about this, but it may work.   
+	ZoomInTimeSink=1 //i'm not very sure about this, but it may work.   
+	
+}  
+
 
 function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
         this.chart = new google.visualization.LineChart(document.getElementById(divIdentifier));
+
+	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+
+	this.redraw = function() {
+
+	var GridColor='#808080';
+        	if($("#time-sink-grid-checkbox").is(':checked'))  {
+        		GridColor = '#808080'; }
+        	else { 
+        		GridColor = '#ffffff'; }
+        		
+	var ZoomIn_factor;
+        	if($("#time-sink-grid-checkbox").is(':checked'))  {
+        		GridColor = '#808080'; }
+        	else { 
+        		GridColor = '#ffffff'; }
+        		
+
 	this.options = {
 		title: 'Time',
 		curveType: 'function',
 		legend: { position: 'bottom' },
 		hAxis: {
-			title: 'Time (milliseconds)'
+			title: 'Time (milliseconds)',
+			gridlines: {
+        		color: GridColor,
+      		}
 		},
 		vAxis: {
+			viewWindow:{min:min_TimeSink_Re*(ZoomOutTimeSink/ZoomInTimeSink), max:max_TimeSink_Re*(ZoomOutTimeSink/ZoomInTimeSink)},
 			title: 'Amplitude',
-        	},
+			gridlines: {
+        		color: GridColor,
+      		}
+       },
         explorer: {
         	actions: ['dragToZoom', 'rightClickToReset'],
         	axis: 'horizontal',
@@ -23,10 +86,8 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
         },
         colors: ['#e2431e', '#000000'],
 	};
-
-	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
-
-	this.redraw = function() {
+	
+	
 		$.get(self.url).done(function (data) {
 			setTimeout(function () {
 				self.redraw();
@@ -50,6 +111,7 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			console.log(data.data.data);
 
 			var realData = data.data.data.streams['0']['real'];
+			
 			var imagData = data.data.data.streams['0']['imag'];
 			$.each(realData, function (pos, value) {
 				realData[pos] = parseFloat(value);
@@ -102,20 +164,38 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			var temp = document.getElementById("TimeSink_NumberOfPoints2Plot");
 			var Number2plot=temp.value
 
+			var randomArr = Array.from({length: Number2plot}, () => Math.random()*2-1);
 
 			var timePerSample = 1000.0 / params.srate; // in milliseconds
 
+
+			min_TimeSink_Re=realData[0];
+			max_TimeSink_Re=realData[0];
+			min_TimeSink_Im=imagData[0];
+			max_TimeSink_Im=imagData[0];
+			
 			for (var pos = 0; pos < Number2plot	; ++pos) {
 				var currentRow = [pos * timePerSample];
-				if (enableReal)
-					currentRow.push(realData[pos]);
+				if (enableReal){
+					currentRow.push(realData[pos]+NoiseFactorTimeSink*randomArr[pos]);
+					if(realData[pos] <min_TimeSink_Re)
+						min_TimeSink_Re=realData[pos]; 
+					if(realData[pos] >max_TimeSink_Re)
+						max_TimeSink_Re=realData[pos] ;
+				}
 				if (enableImag)
-					currentRow.push(imagData[pos]);
+					currentRow.push(imagData[pos]+NoiseFactorTimeSink*randomArr[pos]);
+					if(imagData[pos] <min_TimeSink_Im)
+						min_TimeSink_Im=imagData[pos]; 
+					if(imagData[pos] >max_TimeSink_Im)
+						max_TimeSink_Im=imagData[pos] ;
+
 				formattedData.push(currentRow);
 			}
 
 			var dataTable = google.visualization.arrayToDataTable(formattedData);
-			self.chart.draw(dataTable, self.options);
+			if( flagTimer=='pause')
+				self.chart.draw(dataTable, self.options);
 		});
 	};
 
@@ -125,16 +205,40 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 	var self = this;
 
         this.chart = new google.visualization.ScatterChart(document.getElementById(divIdentifier));
+
+	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+
+	this.redraw = function() {
+	
+	var GridColor='#808080';
+        	if($("#const-sink-grid-checkbox").is(':checked'))  {
+        		GridColor = '#808080'; }
+        	else { 
+        		GridColor = '#ffffff'; }
+        		
+	var ZoomIn_factor;
+        	if($("#const-sink-grid-checkbox").is(':checked'))  {
+        		GridColor = '#808080'; }
+        	else { 
+        		GridColor = '#ffffff'; }
+        		
 	this.options = {
 		title: 'Constellation Plot',
 		pointSize: 3,
 		curveType: 'function',
 		legend: { position: 'bottom' },
 		hAxis: {
-			title: 'In - phase'
+			title: 'In - phase',
+			gridlines: {
+        		color: GridColor,
+      		}
+			
 		},
 		vAxis: {
 			title: 'Quadrature',
+			gridlines: {
+        		color: GridColor,
+      		}
         	},
         explorer: {
         	actions: ['dragToZoom', 'rightClickToReset'],
@@ -143,10 +247,8 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
         	maxZoomIn: 4.0,
         },
 	};
-
-	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
-
-	this.redraw = function() {
+	
+	
 		$.get(self.url).done(function (data) {
 			setTimeout(function () {
 				self.redraw();
@@ -195,7 +297,3 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 	};
 
 }
-
-
-
-

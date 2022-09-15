@@ -10,6 +10,12 @@
     <script type="text/javascript" src="{{ url_for('static', filename='relia/relia.js') }}"></script>
     <script type="text/javascript">
     
+	var ZoomInTimeSink=1;
+	var ZoomOutTimeSink=1;
+	var NoiseFactorTimeSink=0;
+	var min_TimeSink_Re=-1;
+	var max_TimeSink_Re=-1;
+	var flagTimer='pause';
 
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(loadReliaTimeSink);
@@ -30,6 +36,7 @@
          sink.redraw();     /*  */
          }
          
+
     </script>
     
   <body>
@@ -43,39 +50,8 @@
   </body>
 </html>
 
-<div class="DownList_TimeSink_NumberOfPoints2Plot">
-<form>
-  <select id="TimeSink_NumberOfPoints2Plot">
-    <option value="1024"selected="selected">1024 points</option>
-    <option value="2048" >2048 points</option>
-    <option value="4096">4096 points</option>
-  </select>
-</form>
-</div>
-
-
-<div class="DownList_ConstSink_NumberOfPoints2Plot">
-<form>
-  <select id="ConstSink_NumberOfPoints2Plot">
-    <option value="16"selected="selected">16 points</option>
-    <option value="32" >32 points</option>
-    <option value="64">64 points</option>
-    <option value="128">128 points</option>
-    <option value="256">256 points</option>
-  </select>
-</form>
-</div>
-
-
-
-
 <style>
 
-.Button_TimeSink_Pause {
-  margin: 0;
-  position: absolute;
-  right: 20%; top: 90%;
-}
 
 
 .Checkbox_TimeSink_OnOffSignal {
@@ -84,17 +60,13 @@
   right: 20%; top: 85%;
 }
 
-.DownList_ConstSink_NumberOfPoints2Plot {
+.Checkbox_ConstSink_OnOffSignal {
   margin: 0;
   position: absolute;
   right: 20%; top: 25%;
 }
 
-.DownList_TimeSink_NumberOfPoints2Plot {
-  margin: 0;
-  position: absolute;
-  right: 20%; top: 80%;
-}
+
 
 
 </style>
@@ -102,6 +74,47 @@
 <div class="Checkbox_TimeSink_OnOffSignal">
 <input type="checkbox" class="checkbox"  id="time-sink-real-checkbox" checked> Real<br>
 <input type="checkbox" class="checkbox"  id="time-sink-imag-checkbox" checked> Imag<br>
+<input type="checkbox" class="checkbox"  id="time-sink-grid-checkbox" checked> Grid<br>
+<input type = submit name="checkout" class ="button" value="Zoom In" onClick="TimSinkZoomInClick()">
+<input type = submit name="checkout" class ="button" value="Zoom Out" onClick="TimSinkZoomOutClick()">
+<input type = submit name="checkout" class ="button" value="AutoScale" onClick="TimSinkAutoScaleClick()">
+<br>
+
+<p>Add Noise</p>
+<input type="range" name="rangeInput" min="0" max="100" value="0" onchange="TimeSink_NoiseSlide(this.value);">
+<input type="text" id="textInput" value="">
+<br>
+<input type="button" id="PauseRun" value="Pause" onClick="TimSinkPauseRun();" />
+
+<form>
+  <select id="TimeSink_NumberOfPoints2Plot">
+    <option value="512"selected="selected">512 samples</option>
+    <option value="1024"selected="selected">1024 samples</option>
+    <option value="2048" >2048 samples</option>
+    <option value="4096">4096 samples</option>
+  </select>
+</form>
+
+</div>
+
+
+<div class="Checkbox_ConstSink_OnOffSignal">
+<input type="checkbox" class="checkbox"  id="const-sink-grid-checkbox" checked> Grid<br>
+<br>
+
+
+<form>
+  <select id="ConstSink_NumberOfPoints2Plot">
+    <option value="16"selected="selected">16 points</option>
+    <option value="32" >32 points</option>
+    <option value="64">64 points</option>
+    <option value="128">128 points</option>
+    <option value="256">256 points</option>
+    <option value="512">512 points</option>
+    <option value="1024">1024 points</option>
+  </select>
+</form>
+
 </div>
 
 
