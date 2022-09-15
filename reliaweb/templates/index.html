@@ -2,14 +2,15 @@
   <head>
   </head>
   <body>
-    <div id="ourdemo2" style="width: 500px; height: 500px"></div>
-    <div id="ourdemo" style="width: 500px; height: 500px"></div>
-
+    <div id="ourdemo2" style="width: 900px; height: 500px"></div>
+    <div id="ourdemo" style="width: 900px; height: 500px"></div>
 	
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='relia/relia.js') }}"></script>
     <script type="text/javascript">
+    
+
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(loadReliaTimeSink);
       google.charts.setOnLoadCallback(loadReliaConstellationSink);
@@ -23,7 +24,7 @@
          sink.redraw();     /*  */
          }
       function loadReliaConstellationSink() {
-	  var sink = new ReliaConstellationSink("ourdemo2", "my-device-id", "RELIA Constellation Sink(1)");
+	  var sink = new ReliaConstellationSink("ourdemo2", "my-device-id", "RELIA Constellation Sink(2)");
          sink.redraw(); /*  */
 	  /*var sink = new ReliaTimeSink("ourdemo", "my-device-id", "RELIA Time Sink(1)");
          sink.redraw();     /*  */
@@ -36,9 +37,71 @@
         <!--Divs that will hold the charts-->
         <div id="ourdemo"></div>
         <div id="ourdemo2"></div>
+        
+       
+
   </body>
 </html>
 
- 
+<div class="DownList_TimeSink_NumberOfPoints2Plot">
+<form>
+  <select id="TimeSink_NumberOfPoints2Plot">
+    <option value="1024"selected="selected">1024 points</option>
+    <option value="2048" >2048 points</option>
+    <option value="4096">4096 points</option>
+  </select>
+</form>
+</div>
+
+
+<div class="DownList_ConstSink_NumberOfPoints2Plot">
+<form>
+  <select id="ConstSink_NumberOfPoints2Plot">
+    <option value="16"selected="selected">16 points</option>
+    <option value="32" >32 points</option>
+    <option value="64">64 points</option>
+    <option value="128">128 points</option>
+    <option value="256">256 points</option>
+  </select>
+</form>
+</div>
+
+
+
+
+<style>
+
+.Button_TimeSink_Pause {
+  margin: 0;
+  position: absolute;
+  right: 20%; top: 90%;
+}
+
+
+.Checkbox_TimeSink_OnOffSignal {
+  margin: 0;
+  position: absolute;
+  right: 20%; top: 85%;
+}
+
+.DownList_ConstSink_NumberOfPoints2Plot {
+  margin: 0;
+  position: absolute;
+  right: 20%; top: 25%;
+}
+
+.DownList_TimeSink_NumberOfPoints2Plot {
+  margin: 0;
+  position: absolute;
+  right: 20%; top: 80%;
+}
+
+
+</style>
+
+<div class="Checkbox_TimeSink_OnOffSignal">
 <input type="checkbox" class="checkbox"  id="time-sink-real-checkbox" checked> Real<br>
 <input type="checkbox" class="checkbox"  id="time-sink-imag-checkbox" checked> Imag<br>
+</div>
+
+

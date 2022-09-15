@@ -87,7 +87,7 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 				columns.push("Real");
 				self.options.series[counter] = '#e2431e';
 				counter++;
-			}
+			}	
 			if (enableImag) {
 				columns.push("Imag");
 				self.options.series[counter] = '#1c91c0';
@@ -98,10 +98,14 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			var formattedData = [
 				columns
 			];
+			
+			var temp = document.getElementById("TimeSink_NumberOfPoints2Plot");
+			var Number2plot=temp.value
+
 
 			var timePerSample = 1000.0 / params.srate; // in milliseconds
 
-			for (var pos = 0; pos < realData.length; ++pos) {
+			for (var pos = 0; pos < Number2plot	; ++pos) {
 				var currentRow = [pos * timePerSample];
 				if (enableReal)
 					currentRow.push(realData[pos]);
@@ -178,7 +182,10 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 				["", ""]
 			];
 
-			for (var pos = 0; pos < realData.length; ++pos) {
+			var temp = document.getElementById("ConstSink_NumberOfPoints2Plot");
+			var Number2plot=temp.value
+
+			for (var pos = 0; pos < Number2plot; ++pos) {
 				formattedData.push([ realData[pos], imagData[pos]]);
 			}
 
