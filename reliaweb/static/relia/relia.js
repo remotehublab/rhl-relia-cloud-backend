@@ -204,20 +204,45 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
-        this.chart = new google.visualization.ScatterChart(document.getElementById(divIdentifier));
+	self.$div = $("#" + divIdentifier);
+
+	self.$div.html(
+	    "<div class=\"const-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
+	    "<div class=\"Checkbox_ConstSink_OnOffSignal\">" +
+	        "<input type=\"checkbox\" class=\"checkbox const-sink-grid-checkbox\" checked> Grid<br>" +
+		"<br>" + 
+		"<form>" +
+		"  <select class=\"ConstSink_NumberOfPoints2Plot\">" + 
+		"    <option value=\"16\"selected=\"selected\">16 points</option>" + 
+		"    <option value=\"32\" >32 points</option>" + 
+		"    <option value=\"64\">64 points</option>" + 
+		"    <option value=\"128\">128 points</option>" + 
+		"    <option value=\"256\">256 points</option>" + 
+		"    <option value=\"512\">512 points</option>" + 
+		"    <option value=\"1024\">1024 points</option>" + 
+		"  </select>" + 
+		"</form>" +
+	    "</div>"
+	);
+
+	var $constChartDiv = self.$div.find(".const-chart");
+	self.$gridCheckbox = self.$div.find(".const-sink-grid-checkbox");
+	self.$nop2plot = self.$div.find(".ConstSink_NumberOfPoints2Plot");
+
+        this.chart = new google.visualization.ScatterChart($constChartDiv[0]);
 
 	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
 	this.redraw = function() {
 	
 	var GridColor='#808080';
-        	if($("#const-sink-grid-checkbox").is(':checked'))  {
+        	if(self.$gridCheckbox.is(':checked'))  {
         		GridColor = '#808080'; }
         	else { 
         		GridColor = '#ffffff'; }
         		
 	var ZoomIn_factor;
-        	if($("#const-sink-grid-checkbox").is(':checked'))  {
+        	if(self.$gridCheckbox.is(':checked'))  {
         		GridColor = '#808080'; }
         	else { 
         		GridColor = '#ffffff'; }
@@ -284,8 +309,7 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 				["", ""]
 			];
 
-			var temp = document.getElementById("ConstSink_NumberOfPoints2Plot");
-			var Number2plot=temp.value
+			var Number2plot = self.$nop2plot.val();
 
 			for (var pos = 0; pos < Number2plot; ++pos) {
 				formattedData.push([ realData[pos], imagData[pos]]);
