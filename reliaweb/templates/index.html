@@ -2,9 +2,9 @@
   <head>
 	<style>
 		.Checkbox_TimeSink_OnOffSignal {
-		  margin: 0;
-		  position: absolute;
-		  right: 20%; top: 85%;
+/*		  margin: 0;
+		  position: relative;
+		  right: 20%; top: 85%;/**/
 		}
 
 		.Checkbox_ConstSink_OnOffSignal {
@@ -17,7 +17,9 @@
   <body>
     <div id="const-demo"></div>
     <div id="const-demo2"></div>
-    <div id="time-demo" style="width: 900px; height: 500px"></div>
+    <div id="time-demo"></div>
+    <div id="time-demo2"></div>
+    <div id="vector-demo"></div>
 
 	
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -25,11 +27,12 @@
     <script type="text/javascript" src="{{ url_for('static', filename='relia/relia.js') }}"></script>
     <script type="text/javascript">
     
+    var average_number=1;
 	var ZoomInTimeSink=1;
 	var ZoomOutTimeSink=1;
-	var NoiseFactorTimeSink=0;
-	var min_TimeSink_Re=-1;
-	var max_TimeSink_Re=-1;
+	//var NoiseFactorTimeSink=0;
+	//var min_TimeSink_Re=-1;
+	//var max_TimeSink_Re=-1;
 	var flagTimer='pause';
 
       google.charts.load('current', {'packages':['corechart']});
@@ -38,20 +41,35 @@
       window.API_BASE_URL = "{{ url_for('api.index') }}";
 
       function loadUI () {
-  //         loadReliaTimeSink(); 
+  	   loadReliaTimeSink(); 
 	   loadReliaConstellationSink();
+	   //loadReliaVectorSink(); 
+
       }
 
       function loadReliaTimeSink() {
 	  var sink = new ReliaTimeSink("time-demo", "my-device-id", "RELIA Time Sink(1)");
           sink.redraw();
+
+	  var sink2 = new ReliaTimeSink("time-demo2", "my-device-id", "RELIA Time Sink(1)");
+          sink2.redraw();/**/
+
       }
       function loadReliaConstellationSink() {
 	  var sink = new ReliaConstellationSink("const-demo", "my-device-id", "RELIA Constellation Sink(2)");
          sink.redraw();
 
-	  var sink2 = new ReliaConstellationSink("const-demo2", "my-device-id", "RELIA Constellation Sink(2)");
-         sink2.redraw();
+	  /*var sink2 = new ReliaConstellationSink("const-demo2", "my-device-id", "RELIA Constellation Sink(2)");
+         sink2.redraw();/**/
+
+      }
+      
+      function loadReliaVectorSink() {
+	  var sink = new ReliaVectorSink("vector-demo", "my-device-id", "RELIA Vector Sink(1)");
+         sink.redraw();
+
+	  /*var sink2 = new ReliaConstellationSink("const-demo2", "my-device-id", "RELIA Constellation Sink(2)");
+         sink2.redraw();/**/
 
       }
     </script>
@@ -59,29 +77,4 @@
 </html>
 
 
-<div class="Checkbox_TimeSink_OnOffSignal">
-<input type="checkbox" class="checkbox"  id="time-sink-real-checkbox" checked> Real<br>
-<input type="checkbox" class="checkbox"  id="time-sink-imag-checkbox" checked> Imag<br>
-<input type="checkbox" class="checkbox"  id="time-sink-grid-checkbox" checked> Grid<br>
-<input type = submit name="checkout" class ="button" value="Zoom In" onClick="TimSinkZoomInClick()">
-<input type = submit name="checkout" class ="button" value="Zoom Out" onClick="TimSinkZoomOutClick()">
-<input type = submit name="checkout" class ="button" value="AutoScale" onClick="TimSinkAutoScaleClick()">
-<br>
-
-<p>Add Noise</p>
-<input type="range" name="rangeInput" min="0" max="100" value="0" onchange="TimeSink_NoiseSlide(this.value);">
-<input type="text" id="textInput" value="">
-<br>
-<input type="button" id="PauseRun" value="Pause" onClick="TimSinkPauseRun();" />
-
-<form>
-  <select id="TimeSink_NumberOfPoints2Plot">
-    <option value="512"selected="selected">512 samples</option>
-    <option value="1024"selected="selected">1024 samples</option>
-    <option value="2048" >2048 samples</option>
-    <option value="4096">4096 samples</option>
-  </select>
-</form>
-
-</div>
 
