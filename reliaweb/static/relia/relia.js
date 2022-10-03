@@ -28,24 +28,6 @@ function DecAverageCounter(vals){
 }
 	
 
-function TimSinkZoomOutClick()
-	{
-	ZoomOutTimeSink=ZoomOutTimeSink+1 //i'm not very sure about this, but it may work.   
-}  
-
-function TimSinkZoomInClick()
-	{
-	ZoomInTimeSink=ZoomInTimeSink+1 //i'm not very sure about this, but it may work.   
-}  
-
-function TimSinkAutoScaleClick()
-	{
-	ZoomOutTimeSink=1 //i'm not very sure about this, but it may work.   
-	ZoomInTimeSink=1 //i'm not very sure about this, but it may work.   
-	
-}  
-
-
 function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
@@ -59,19 +41,18 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	        "<input type=\"checkbox\" class=\"checkbox time-sink-imag-checkbox\" checked> Imag<br>" +
 		"<br>" + 
 
-	        "<input type=\"submit\" name=\"checkout\" class=\"button\" value=\"Zoom In\" onClick=\"TimSinkZoomInClick()\"> <br>" +
-	        "<input type=\"submit\" name=\"checkout\" class=\"button\" value=\"Zoom Out\" onClick=\"TimSinkZoomOutClick()\"> <br>" +
-	        "<input type=\"submit\" name=\"checkout\" class=\"button\" value=\"Zoom AutoScale\" onClick=\"TimSinkAutoScaleClick()\"> <br>" +
+	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-in-button\" value=\"Zoom In\"> <br>" +
+	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-out-button\" value=\"Zoom Out\"> <br>" +
+	        "<input type=\"submit\" name=\"checkout\" class=\"button autoscale-button\" value=\"Zoom AutoScale\"> <br>" +
 		"<br>" + 
 		"<p>Add Noise</p>" +
 	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
-	        "<input id=\"TimeSinkNoiseSlider\" type=\"range\" min=\"0\" max=\"100\" value=\"90\"> <p id=\"TimeSinkNoiseSliderValue\" value=\"1\"></p> <br>" +
+	        "<input class=\"noise-slider\" type=\"range\" min=\"0\" max=\"100\" value=\"0\">" +
+		"<p class=\"noise-slider-value\" value=\"1\"></p> <br>" +
 		"<br>" + 
 	        //"<input type=\"button\" id=\"PauseRun\" value=\"Pause\" onClick=\"TimSinkPauseRun()\" <br>" +
 			//"<input type=\"button\" id=\"myButton1\" onClick=\"if(this.value=='Run') { this.value='Pause'; } else { this.value='Run'; }\" value=\"Pause\" <br>" +
 			//"<input type=\"button\" id=\"myButton1\" onClick=RunPausePressed(this) <br>" +
-
-		
 		
 		"<form>" +
 		"  <select class=\"TimeSink_NumberOfPoints2Plot\">" + 
@@ -93,19 +74,34 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	self.$timesinkimagCheckbox = self.$div.find(".time-sink-imag-checkbox");
 	self.$nop2plot = self.$div.find(".TimeSink_NumberOfPoints2Plot");
 	
-	self.$max_TimeSink_Re=1;
-	self.$min_TimeSink_Re=1;
-	
-	self.$TimeSinkNoiseSlider = document.getElementById("TimeSinkNoiseSlider");
-	self.$TimeSinkNoiseSliderValue = document.getElementById("TimeSinkNoiseSliderValue");
+	self.maxTimeSinkRe=1;
+	self.minTimeSinkRe=1;
+	self.zoomInTimeSink=1;
+        self.zoomOutTimeSink=1;
 
-	let $ChangeTimeSinkNoiseSlider = () => {
-		self.$TimeSinkNoiseSliderValue.textContent = self.$TimeSinkNoiseSlider.value;
-  		self.$NoiseFactorTimeSink=self.$TimeSinkNoiseSlider.value*(self.$max_TimeSink_Re-self.$min_TimeSink_Re)/100;
-	}
-	$ChangeTimeSinkNoiseSlider();
+	self.$div.find(".zoom-in-button").click(function() {
+		self.zoomInTimeSink += 1;
+	});
+	self.$div.find(".zoom-out-button").click(function() {
 
-	self.$TimeSinkNoiseSlider.onchange = $ChangeTimeSinkNoiseSlider;
+		self.zoomOutTimeSink += 1;
+	});
+	self.$div.find(".autoscale-button").click(function() {
+		self.zoomInTimeSink = 1;
+		self.zoomOutTimeSink = 1;
+	});
+
+	self.noiseFactor = 0;
+	self.$timeSinkNoiseSlider = self.$div.find(".noise-slider"); // <input>
+	self.$timeSinkNoiseSliderValue = self.$div.find(".noise-slider-value"); // <p>
+
+	self.changeTimeSinkNoiseSlider = function () {
+		self.$timeSinkNoiseSliderValue.text(self.$timeSinkNoiseSlider.val());
+  		self.noiseFactor = self.$timeSinkNoiseSlider.val()*(self.maxTimeSinkRe-self.minTimeSinkRe)/100;
+	};
+	self.changeTimeSinkNoiseSlider();
+
+	self.$timeSinkNoiseSlider.change(self.changeTimeSinkNoiseSlider);
 	
 	self.$flagPauseRun="Run";
 
@@ -118,50 +114,53 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 	
 
 
-    this.chart = new google.visualization.LineChart($constChartDiv[0]);
+	self.chart = new google.visualization.LineChart($constChartDiv[0]);
 
-	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+	self.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
-	this.redraw = function() {
+	self.redraw = function() {
 
-	var GridColor='#808080';
-        	if(self.$gridCheckbox.is(':checked'))  {
-        		GridColor = '#808080'; }
-        	else { 
-        		GridColor = '#ffffff'; }
-        		
-/*	var ZoomIn_factor;
-        	if($("#time-sink-grid-checkbox").is(':checked'))  {
-        		GridColor = '#808080'; }
-        	else { 
-        		GridColor = '#ffffff'; }/**/
-        		
+		var GridColor='#808080';
+			if(self.$gridCheckbox.is(':checked'))  {
+				GridColor = '#808080'; }
+			else { 
+				GridColor = '#ffffff'; }
+				
+	/*	var ZoomIn_factor;
+			if($("#time-sink-grid-checkbox").is(':checked'))  {
+				GridColor = '#808080'; }
+			else { 
+				GridColor = '#ffffff'; }/**/
+				
 
-	this.options = {
-		title: 'Time',
-		curveType: 'function',
-		legend: { position: 'bottom' },
-		hAxis: {
-			title: 'Time (milliseconds)',
-			gridlines: {
-        		color: GridColor,
-      		}
+		self.options = {
+			title: 'Time',
+			curveType: 'function',
+			legend: { position: 'bottom' },
+			hAxis: {
+				title: 'Time (milliseconds)',
+				gridlines: {
+				color: GridColor,
+			}
+			},
+			vAxis: {
+				viewWindow:{
+					min: self.minTimeSinkRe*(self.zoomOutTimeSink/self.zoomInTimeSink),
+					max: self.maxTimeSinkRe*(self.zoomOutTimeSink/self.zoomInTimeSink)
+				},
+				title: 'Amplitude',
+				gridlines: {
+				color: GridColor,
+			}
+	       },
+		explorer: {
+			actions: ['dragToZoom', 'rightClickToReset'],
+			axis: 'horizontal',
+			keepInBounds: true,
+			maxZoomIn: 4.0,
 		},
-		vAxis: {
-			viewWindow:{min:self.$min_TimeSink_Re*(ZoomOutTimeSink/ZoomInTimeSink), max:self.$max_TimeSink_Re*(ZoomOutTimeSink/ZoomInTimeSink)},
-			title: 'Amplitude',
-			gridlines: {
-        		color: GridColor,
-      		}
-       },
-        explorer: {
-        	actions: ['dragToZoom', 'rightClickToReset'],
-        	axis: 'horizontal',
-        	keepInBounds: true,
-        	maxZoomIn: 4.0,
-        },
-        colors: ['#e2431e', '#000000'],
-	};
+		colors: ['#e2431e', '#000000'],
+		};
 	
 	
 		$.get(self.url).done(function (data) {
@@ -243,22 +242,22 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 			var timePerSample = 1000.0 / params.srate; // in milliseconds
 
 
-			self.$min_TimeSink_Re=realData[0];
-			self.$max_TimeSink_Re=realData[0];
+			self.minTimeSinkRe=realData[0];
+			self.maxTimeSinkRe=realData[0];
 			self.$min_TimeSink_Im=imagData[0];
 			self.$max_TimeSink_Im=imagData[0];
 			
 			for (var pos = 0; pos < Number2plot	; ++pos) {
 				var currentRow = [pos * timePerSample];
 				if (enableReal){
-					currentRow.push(realData[pos]+self.$NoiseFactorTimeSink*randomArr[pos]);
-					if(realData[pos] <self.$min_TimeSink_Re)
-						self.$min_TimeSink_Re=realData[pos]; 
-					if(realData[pos] >self.$max_TimeSink_Re)
-						self.$max_TimeSink_Re=realData[pos] ;
+					currentRow.push(realData[pos]+self.noiseFactor*randomArr[pos]);
+					if(realData[pos] <self.minTimeSinkRe)
+						self.minTimeSinkRe=realData[pos]; 
+					if(realData[pos] >self.maxTimeSinkRe)
+						self.maxTimeSinkRe=realData[pos] ;
 				}
 				if (enableImag)
-					currentRow.push(imagData[pos]+self.$NoiseFactorTimeSink*randomArr[pos]);
+					currentRow.push(imagData[pos]+self.noiseFactor*randomArr[pos]);
 					if(imagData[pos] <self.$min_TimeSink_Im)
 						self.$min_TimeSink_Im=imagData[pos]; 
 					if(imagData[pos] >self.$max_TimeSink_Im)
