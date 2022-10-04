@@ -15,6 +15,7 @@
 	</style>
   </head>
   <body>
+    <div id="all-together"></div>
     <div id="const-demo"></div>
     <div id="const-demo2"></div>
     <div id="time-demo"></div>
@@ -39,34 +40,35 @@
       window.API_BASE_URL = "{{ url_for('api.index') }}";
 
       function loadUI () {
-  	   loadReliaTimeSink(); 
-	   loadReliaConstellationSink();
+	   var widgets = new ReliaWidgets($("#all-together"));
+  	   //loadReliaTimeSink(); 
+	   //loadReliaConstellationSink();
 	   //loadReliaVectorSink(); 
 
       }
 
       function loadReliaTimeSink() {
-	  var sink = new ReliaTimeSink("time-demo", "my-device-id", "RELIA Time Sink(1)");
+	  var sink = new ReliaTimeSink($("#time-demo"), "my-device-id", "RELIA Time Sink(1)");
           sink.redraw();
 
-	  var sink2 = new ReliaTimeSink("time-demo2", "my-device-id", "RELIA Time Sink(1)");
+	  var sink2 = new ReliaTimeSink($("#time-demo2"), "my-device-id", "RELIA Time Sink(1)");
           sink2.redraw();/**/
 
       }
       function loadReliaConstellationSink() {
-	  var sink = new ReliaConstellationSink("const-demo", "my-device-id", "RELIA Constellation Sink(2)");
+	  var sink = new ReliaConstellationSink($("#const-demo"), "my-device-id", "RELIA Constellation Sink(2)");
          sink.redraw();
 
-	  /*var sink2 = new ReliaConstellationSink("const-demo2", "my-device-id", "RELIA Constellation Sink(2)");
+	  /*var sink2 = new ReliaConstellationSink($("#const-demo2"), "my-device-id", "RELIA Constellation Sink(2)");
          sink2.redraw();/**/
 
       }
       
       function loadReliaVectorSink() {
-	  var sink = new ReliaVectorSink("vector-demo", "my-device-id", "RELIA Vector Sink(1)");
+	  var sink = new ReliaVectorSink($("#vector-demo"), "my-device-id", "RELIA Vector Sink(1)");
          sink.redraw();
 
-	  /*var sink2 = new ReliaConstellationSink("const-demo2", "my-device-id", "RELIA Constellation Sink(2)");
+	  /*var sink2 = new ReliaConstellationSink($("#const-demo2"), "my-device-id", "RELIA Constellation Sink(2)");
          sink2.redraw();/**/
 
       }

@@ -26,14 +26,59 @@ function DecAverageCounter(vals){
 		average_number=1;
 	}
 }
-	
 
-function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
+function ReliaWidgets($divElement) {
+	var self = this;
+	var devicesUrl = window.API_BASE_URL + "data/current/devices";
+	self.blocks = [];
+
+	$.get(devicesUrl).done(function (data) {
+		if (!data.success) {
+			// TODO
+			console.log("Error loading devices:", data);
+			return;
+		}
+
+		var devices = data.devices;
+		$.each(devices, function (pos, deviceName) {
+			var blocksUrl = window.API_BASE_URL + "data/current/devices/" + deviceName + "/blocks";
+			$.get(blocksUrl).done(function (data) {
+				if (!data.success) {
+					// TODO
+					console.log("Error loading blocks:", data);
+					return;
+				}
+				$.each(data.blocks, function (post, blockName) {
+					var $newDiv = $("<div></div>");
+					$divElement.append($newDiv);
+					console.log("Loading...", deviceName, blockName);
+					if (blockName.startsWith("RELIA Constellation Sink")) {
+						var constellationSink = new ReliaConstellationSink($newDiv, deviceName, blockName);
+						self.blocks.push(constellationSink);
+						constellationSink.redraw();
+						
+					} else if (blockName.startsWith("RELIA Time Sink")) {
+						var timeSink = new ReliaTimeSink($newDiv, deviceName, blockName);
+						self.blocks.push(timeSink);
+						timeSink.redraw();
+					} else if (blockName.startsWith("RELIA Vector Sink")) {
+						var vectorSink = new ReliaVectorSink($newDiv, deviceName, blockName);
+						self.blocks.push(vectorSink);
+						vectorSink.redraw();
+					};
+				});
+			});
+		});
+	});
+}
+
+function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
-	self.$div = $("#" + divIdentifier);
+	self.$div = $divElement;
 
 	self.$div.html(
+	    "<h3>Time Sink " + blockIdentifier + " of " + deviceIdentifier + "</h3>" +
 	    "<div class=\"time-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
 	    "<div class=\"Checkbox_TimeSink_OnOffSignal\">" +
 	        "<input type=\"checkbox\" class=\"checkbox time-sink-grid-checkbox\" checked> Grid<br>" +
@@ -116,7 +161,7 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 
 	self.chart = new google.visualization.LineChart($constChartDiv[0]);
 
-	self.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+	self.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
 	self.redraw = function() {
 
@@ -274,12 +319,13 @@ function ReliaTimeSink (divIdentifier, deviceIdentifier, blockIdentifier) {
 
 }
 
-function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifier) {
+function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
-	self.$div = $("#" + divIdentifier);
+	self.$div = $divElement;
 
 	self.$div.html(
+	    "<h3>Constellation Sink " + blockIdentifier + " of " + deviceIdentifier + "</h3>" +
 	    "<div class=\"const-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
 	    "<div class=\"Checkbox_ConstSink_OnOffSignal\">" +
 	        "<input type=\"checkbox\" class=\"checkbox const-sink-grid-checkbox\" checked> Grid<br>" +
@@ -304,7 +350,7 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 
         this.chart = new google.visualization.ScatterChart($constChartDiv[0]);
 
-	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+	this.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
 	this.redraw = function() {
 	
@@ -395,16 +441,17 @@ function ReliaConstellationSink (divIdentifier, deviceIdentifier, blockIdentifie
 
 }
 
-function ReliaVectorSink (divIdentifier, deviceIdentifier, blockIdentifier) {
+function ReliaVectorSink ($divElement, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
 	var avg_counter=1;
 	//let average_number=1;
 	var avg_data=Array(1024).fill(0);
 
-	self.$div = $("#" + divIdentifier);
+	self.$div = $divElement;
 
 	self.$div.html(
+	    "<h3>Vector Sink " + blockIdentifier + " of " + deviceIdentifier + "</h3>" +
 	    "<div class=\"const-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
 			"<input type=\"button\" id=\"Inc\" onClick=IncAverageCounter(this) value=\"average +\"<br>" +
 			"<input type=\"button\" id=\"Inc\" onClick=DecAverageCounter(this) value=\"average -\"<br>" +
@@ -428,7 +475,7 @@ function ReliaVectorSink (divIdentifier, deviceIdentifier, blockIdentifier) {
         	}
 	};
 
-	this.url = window.API_BASE_URL + "data/current/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+	this.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
 	this.redraw = function() {
 		$.get(self.url).done(function (data) {
