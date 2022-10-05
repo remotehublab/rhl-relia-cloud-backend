@@ -2,19 +2,7 @@ function Relia() {
 
 }
 
-function TimSinkPauseRun() { 
-  if( flagTimer=='pause')
-  {
-    flagTimer='run';
-    document.getElementById('PauseRun').value="Play";
-  }
-  else
-  {
-    flagTimer='pause';
-    document.getElementById('PauseRun').value="Pause";
-  }
-  
-}
+
 
 function IncAverageCounter(vals){
 	average_number=average_number+1;
@@ -84,7 +72,6 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	        "<input type=\"checkbox\" class=\"checkbox time-sink-grid-checkbox\" checked> Grid<br>" +
 	        "<input type=\"checkbox\" class=\"checkbox time-sink-real-checkbox\" checked> Real<br>" +
 	        "<input type=\"checkbox\" class=\"checkbox time-sink-imag-checkbox\" checked> Imag<br>" +
-		"<br>" + 
 
 	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-in-button\" value=\"Zoom In\"> <br>" +
 	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-out-button\" value=\"Zoom Out\"> <br>" +
@@ -94,11 +81,11 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
 	        "<input class=\"noise-slider\" type=\"range\" min=\"0\" max=\"100\" value=\"0\">" +
 		"<p class=\"noise-slider-value\" value=\"1\"></p> <br>" +
-		"<br>" + 
 	        //"<input type=\"button\" id=\"PauseRun\" value=\"Pause\" onClick=\"TimSinkPauseRun()\" <br>" +
 			//"<input type=\"button\" id=\"myButton1\" onClick=\"if(this.value=='Run') { this.value='Pause'; } else { this.value='Run'; }\" value=\"Pause\" <br>" +
 			//"<input type=\"button\" id=\"myButton1\" onClick=RunPausePressed(this) <br>" +
-		
+		    "<input type=\"submit\" name=\"checkout\" class=\"button pause-button\" value=\"Pause/Run\"> <br>" +
+
 		"<form>" +
 		"  <select class=\"TimeSink_NumberOfPoints2Plot\">" + 
 		"    <option value=\"1024\"selected=\"selected\">1024 points</option>" + 
@@ -122,7 +109,8 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	self.maxTimeSinkRe=1;
 	self.minTimeSinkRe=1;
 	self.zoomInTimeSink=1;
-        self.zoomOutTimeSink=1;
+    self.zoomOutTimeSink=1;
+    self.flagPauseRun=true;
 
 	self.$div.find(".zoom-in-button").click(function() {
 		self.zoomInTimeSink += 1;
@@ -148,14 +136,18 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 
 	self.$timeSinkNoiseSlider.change(self.changeTimeSinkNoiseSlider);
 	
-	self.$flagPauseRun="Run";
+	self.$div.find(".pause-button").click(function() {
+		if (self.flagPauseRun==true) self.flagPauseRun=false;
+		else self.flagPauseRun=true;
+	});/**/
+	//self.$flagPauseRun="Run";
 
-	self.$TimeSinkPauseButton = document.getElementById("myButton1");	
+	//self.$TimeSinkPauseButton = document.getElementById("myButton1");	
 
-	function RunPausePressed(el){
+	/*function RunPausePressed(el){
 		if (el.value=='Pause') self.$flagPauseRun='Run';
 		if (el.value=='Run') self.$flagPauseRun='Pause';
-	}
+	}/**/
 	
 
 
@@ -312,7 +304,7 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 			}
 
 			var dataTable = google.visualization.arrayToDataTable(formattedData);
-			if( self.$flagPauseRun=='Run')
+			if( self.flagPauseRun==true)
 				self.chart.draw(dataTable, self.options);
 		});
 	};
@@ -329,14 +321,15 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
 	    "<div class=\"const-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
 	    "<div class=\"Checkbox_ConstSink_OnOffSignal\">" +
 	        "<input type=\"checkbox\" class=\"checkbox const-sink-grid-checkbox\" checked> Grid<br>" +
-		"<br>" + 
+		    "<input type=\"submit\" name=\"checkout\" class=\"button pause-button\" value=\"Pause/Run\"> <br>" +
+		
 		"<form>" +
 		"  <select class=\"ConstSink_NumberOfPoints2Plot\">" + 
-		"    <option value=\"16\"selected=\"selected\">16 points</option>" + 
+		"    <option value=\"16\">16 points</option>" + 
 		"    <option value=\"32\" >32 points</option>" + 
 		"    <option value=\"64\">64 points</option>" + 
 		"    <option value=\"128\">128 points</option>" + 
-		"    <option value=\"256\">256 points</option>" + 
+		"    <option value=\"256\"selected=\"selected\">256 points</option>" + 
 		"    <option value=\"512\">512 points</option>" + 
 		"    <option value=\"1024\">1024 points</option>" + 
 		"  </select>" + 
@@ -347,12 +340,19 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
 	var $constChartDiv = self.$div.find(".const-chart");
 	self.$gridCheckbox = self.$div.find(".const-sink-grid-checkbox");
 	self.$nop2plot = self.$div.find(".ConstSink_NumberOfPoints2Plot");
+    self.flagPauseRun=true;
 
-        this.chart = new google.visualization.ScatterChart($constChartDiv[0]);
+	self.$div.find(".pause-button").click(function() {
+		if (self.flagPauseRun==true) self.flagPauseRun=false;
+		else self.flagPauseRun=true;
+	});/**/
 
-	this.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
 
-	this.redraw = function() {
+    self.chart = new google.visualization.ScatterChart($constChartDiv[0]);
+
+	self.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+
+	self.redraw = function() {
 	
 	var GridColor='#808080';
         	if(self.$gridCheckbox.is(':checked'))  {
@@ -366,7 +366,7 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
         	else { 
         		GridColor = '#ffffff'; }
         		
-	this.options = {
+	self.options = {
 		title: 'Constellation Plot',
 		pointSize: 3,
 		curveType: 'function',
@@ -435,13 +435,14 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
 			}
 
 			var dataTable = google.visualization.arrayToDataTable(formattedData);
-			self.chart.draw(dataTable, self.options);
+			if( self.flagPauseRun==true)
+				self.chart.draw(dataTable, self.options);
 		});
 	};
 
 }
 
-function ReliaVectorSink ($divElement, deviceIdentifier, blockIdentifier) {
+function ReliaVectorSinkold ($divElement, deviceIdentifier, blockIdentifier) {
 	var self = this;
 
 	var avg_counter=1;
@@ -532,4 +533,197 @@ function ReliaVectorSink ($divElement, deviceIdentifier, blockIdentifier) {
 
 
 
+function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
+	var self = this;
 
+	self.$div = $divElement;
+
+	self.$div.html(
+	    "<h3>Frequency Sink " + blockIdentifier + " of " + deviceIdentifier + "</h3>" +
+	    "<div class=\"vector-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
+	    "<div class=\"Checkbox_VectorSink_OnOffSignal\">" +
+	        "<input type=\"checkbox\" class=\"checkbox vector-sink-grid-checkbox\" checked> Grid<br>" +
+		"<br>" + 
+
+	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-in-button-Vector\" value=\"Zoom In\"> <br>" +
+	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-out-button-Vector\" value=\"Zoom Out\"> <br>" +
+	        "<input type=\"submit\" name=\"checkout\" class=\"button autoscale-button-Vector\" value=\"Zoom AutoScale\"> <br>" +
+		    "<input type=\"submit\" name=\"checkout\" class=\"button pause-button\" value=\"Pause/Run\"> <br>" +
+		    "<input type=\"submit\" name=\"checkout\" class=\"button Inc-Average-button\" value=\"Average +\"> <br>" +
+		    "<input type=\"submit\" name=\"checkout\" class=\"button Dec-Average-button\" value=\"Average -\"> <br>" +
+	    "</div>"
+	);
+	
+	var $constChartDiv = self.$div.find(".vector-chart");
+	self.$gridCheckbox = self.$div.find(".vector-sink-grid-checkbox");
+	
+	self.minVectorSink=1;
+	self.minVectorSink=1;
+	self.zoomfactor=0;    
+	self.flagPauseRun=true;
+    self.averageCounter=1;
+    self.averageInput=1;
+    self.averageBuffer=Array(1024).fill(0);
+
+	self.$div.find(".Inc-Average-button").click(function() {
+		self.averageInput += 1;
+	});
+
+	self.$div.find(".Dec-Average-button").click(function() {
+		self.averageInput -= 1;
+		if (self.averageInput<1) self.averageInput = 1;
+	});
+
+	self.$div.find(".zoom-in-button-Vector").click(function() {
+		if(self.maxVectorSinkRe -self.minVectorSinkRe>2){
+	
+			self.zoomfactor -= 1;
+			if(self.zoomfactor>0) // to zoom outs
+			{	self.maximumView=Math.ceil(self.maxVectorSinkRe + (self.maxVectorSinkRe -self.minVectorSinkRe)*Math.pow(2,self.zoomfactor)/8);
+				self.minimumView=Math.floor(self.minVectorSinkRe - (self.maxVectorSinkRe -self.minVectorSinkRe)*Math.pow(2,self.zoomfactor)/8);
+			}
+			if(self.zoomfactor==0) 
+			{	self.maximumView=Math.ceil(self.maxVectorSinkRe);
+				self.minimumView=Math.floor(self.minVectorSinkRe);
+			}
+			if(self.zoomfactor<0) // to zoom in
+				var temp=(self.maxVectorSinkRe -self.minVectorSinkRe)/(2*Math.pow(2,Math.abs(self.zoomfactor)));
+			{	self.maximumView=Math.ceil(self.maxVectorSinkRe - temp);
+				self.minimumView=Math.floor(self.minVectorSinkRe + temp);
+			}
+		}
+		else self.zoomfactor=0
+	});
+	self.$div.find(".zoom-out-button-Vector").click(function() {
+		self.zoomfactor += 1;
+		if(self.zoomfactor>0)   // to zoom outs
+		{	self.maximumView=Math.ceil(self.maxVectorSinkRe + (self.maxVectorSinkRe -self.minVectorSinkRe)*Math.pow(2,self.zoomfactor)/8);
+			self.minimumView=Math.floor(self.minVectorSinkRe - (self.maxVectorSinkRe -self.minVectorSinkRe)*Math.pow(2,self.zoomfactor)/8);
+		}
+		if(self.zoomfactor==0) 
+		{	self.maximumView=Math.ceil(self.maxVectorSinkRe);
+			self.minimumView=Math.floor(self.minVectorSinkRe);
+		}
+		if(self.zoomfactor<0)  // to zoom in
+		{	var temp=(self.maxVectorSinkRe -self.minVectorSinkRe)/(2*Math.pow(2,Math.abs(self.zoomfactor)));
+			self.maximumView=Math.ceil(self.maxVectorSinkRe - temp);
+			self.minimumView=Math.floor(self.minVectorSinkRe + temp);
+		}
+		
+	});
+	self.$div.find(".autoscale-button-Vector").click(function() {
+		self.zoomfactor=0
+		self.maximumView=Math.ceil(self.maxVectorSinkRe);
+		self.minimumView=Math.floor(self.minVectorSinkRe);
+	});
+
+	self.$div.find(".pause-button").click(function() {
+		if (self.flagPauseRun==true) self.flagPauseRun=false;
+		else self.flagPauseRun=true;
+	});/**/
+
+	self.chart = new google.visualization.LineChart($constChartDiv[0]);
+
+	self.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+
+	self.redraw = function() {
+
+		var GridColor='#808080';
+			if(self.$gridCheckbox.is(':checked'))  {
+				GridColor = '#808080'; }
+			else { 
+				GridColor = '#ffffff'; }
+				
+
+		self.options = {
+			title: 'Power Spectra',
+			curveType: 'function',
+			legend: { position: 'bottom' },
+			hAxis: {
+				title: 'freq (Hz)',
+				gridlines: {
+				color: GridColor,
+			}
+			},
+			vAxis: {
+				viewWindow:{
+					/*min: self.minVectorSinkRe*(self.zoomOutVectorSink/self.zoomInVectorSink),
+					max: self.maxVectorSinkRe*(self.zoomOutVectorSink/self.zoomInVectorSink)/**/
+					min: self.minimumView,
+					max: self.maximumView
+				},
+				title: 'decibels (dB)',
+				gridlines: {
+				color: GridColor,
+			}
+	       },
+		explorer: {
+			actions: ['dragToZoom', 'rightClickToReset'],
+			axis: 'horizontal',
+			keepInBounds: true,
+			maxZoomIn: 4.0,
+		},
+		//colors: ['#e2431e', '#000000'],
+		};
+	
+	
+		$.get(self.url).done(function (data) {
+			setTimeout(function () {
+				self.redraw();
+			});
+
+			if (!data.success) {
+				console.log("Error: " + data.message);
+				return;
+			}
+
+			if (data.data == null) {
+				console.log("No data");
+				return;
+			}
+
+			var params = data.data.params;
+
+			/*console.log(data.data.block_type);
+			console.log(data.data.type);
+			console.log(params);
+			console.log(data.data.data);/**/
+
+			var realData = data.data.data.streams[0];
+
+			
+			if (self.averageCounter<self.averageInput){
+			
+				self.averageCounter=self.averageCounter+1;
+				for (var k=0; k<realData.length;++k){
+					self.averageBuffer[k]+=parseFloat(realData[k]);
+				}
+
+			}
+			else{
+				//console.log(self.averageInput);	
+				self.minVectorSinkRe=self.averageBuffer[0];
+				self.maxVectorSinkRe=self.averageBuffer[0];/**/
+				self.averageCounter=0;
+				var formattedData = [
+					["Point", "Frequency"]
+					];
+
+				for (var pos = 0; pos < realData.length; ++pos) {
+					formattedData.push([ pos, self.averageBuffer[pos]]);
+					if(self.averageBuffer[pos] <self.minVectorSinkRe)
+						self.minVectorSinkRe=self.averageBuffer[pos]; 
+					if(self.averageBuffer[pos] >self.maxVectorSinkRe)
+						self.maxVectorSinkRe=self.averageBuffer[pos] ;
+					
+				}
+				self.averageBuffer=Array(1024).fill(0);
+
+				var dataTable = google.visualization.arrayToDataTable(formattedData);
+				if( self.flagPauseRun==true)
+					self.chart.draw(dataTable, self.options);
+				}
+		});
+	};
+
+}
