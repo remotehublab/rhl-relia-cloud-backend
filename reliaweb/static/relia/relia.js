@@ -1,3 +1,5 @@
+
+
 function Relia() {
 
 }
@@ -217,10 +219,10 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 
 			var params = data.data.params;
 
-			console.log(data.data.block_type);
-			console.log(data.data.type);
-			console.log(params);
-			console.log(data.data.data);
+			//console.log(data.data.block_type);
+			//console.log(data.data.type);
+			//console.log(params);
+			//console.log(data.data.data);
 
 			var realData = data.data.data.streams['0']['real'];
 			
@@ -410,10 +412,10 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
 
 			var params = data.data.params;
 
-			console.log(data.data.block_type);
-			console.log(data.data.type);
-			console.log(params);
-			console.log(data.data.data);
+			//console.log(data.data.block_type);
+			//console.log(data.data.type);
+			//console.log(params);
+			//console.log(data.data.data);
 
 			var realData = data.data.data.streams['0']['real'];
 			var imagData = data.data.data.streams['0']['imag'];
@@ -442,94 +444,6 @@ function ReliaConstellationSink ($divElement, deviceIdentifier, blockIdentifier)
 
 }
 
-function ReliaVectorSinkold ($divElement, deviceIdentifier, blockIdentifier) {
-	var self = this;
-
-	var avg_counter=1;
-	//let average_number=1;
-	var avg_data=Array(1024).fill(0);
-
-	self.$div = $divElement;
-
-	self.$div.html(
-	    "<h3>Vector Sink " + blockIdentifier + " of " + deviceIdentifier + "</h3>" +
-	    "<div class=\"const-chart\" style=\"width: 900px; height: 500px\"></div>\n" +
-			"<input type=\"button\" id=\"Inc\" onClick=IncAverageCounter(this) value=\"average +\"<br>" +
-			"<input type=\"button\" id=\"Inc\" onClick=DecAverageCounter(this) value=\"average -\"<br>" +
-	    
-	    "</div>"
-	);
-
-	var $constChartDiv = self.$div.find(".const-chart");
-
-
-        this.chart = new google.visualization.LineChart($constChartDiv[0]);
-	this.options = {
-		title: 'Power Spectra',
-		curveType: 'function',
-		legend: { position: 'bottom' },
-		hAxis: {
-			title: 'KHz'
-		},
-		vAxis: {
-			title: 'dB',
-        	}
-	};
-
-	this.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
-
-	this.redraw = function() {
-		$.get(self.url).done(function (data) {
-			setTimeout(function () {
-				self.redraw();
-			});
-
-			if (!data.success) {
-				console.log("Error: " + data.message);
-				return;
-			}
-
-			if (data.data == null) {
-				console.log("No data");
-				return;
-			}
-
-			var params = data.data.params;
-
-			/*console.log(data.data.block_type);
-			console.log(data.data.type);
-			console.log(params);
-			console.log(avg_counter);/**/
-
-			var realData = data.data.data.streams[0];
-			
-			if (avg_counter<average_number){
-			
-				avg_counter=avg_counter+1;
-				for (var k=0; k<1024;++k){
-					avg_data[k]+=parseFloat(realData[k]);
-				}
-
-			}
-			else{
-				console.log(average_number);			
-				avg_counter=0;
-				var formattedData = [
-					["Point", "Frequency"]
-					];
-
-				for (var pos = 0; pos < realData.length; ++pos) {
-					formattedData.push([ pos, avg_data[pos]]);
-				}
-				avg_data=Array(1024).fill(0);
-
-				var dataTable = google.visualization.arrayToDataTable(formattedData);
-				self.chart.draw(dataTable, self.options);
-				}
-		});
-	};
-
-}
 
 
 
@@ -544,7 +458,11 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 	    "<div class=\"Checkbox_VectorSink_OnOffSignal\">" +
 	        "<input type=\"checkbox\" class=\"checkbox vector-sink-grid-checkbox\" checked> Grid<br>" +
 		"<br>" + 
-
+		"<p>Center Frequency</p>" +
+	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
+	        "<input class=\"frequency-slider\" type=\"range\" min=\"0\" max=\"100\" >" +
+		"<p class=\"frequnecy-slider-value\" value=\"1\"></p> <br>" +
+		"<br>" + 
 	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-in-button-Vector\" value=\"Zoom In\"> <br>" +
 	        "<input type=\"submit\" name=\"checkout\" class=\"button zoom-out-button-Vector\" value=\"Zoom Out\"> <br>" +
 	        "<input type=\"submit\" name=\"checkout\" class=\"button autoscale-button-Vector\" value=\"Zoom AutoScale\"> <br>" +
@@ -564,6 +482,23 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
     self.averageCounter=1;
     self.averageInput=1;
     self.averageBuffer=Array(1024).fill(0);
+
+	//self.redraw = function() {
+	//self.Frequencyfactor = 0;
+	self.$vectorSinkFrequencySlider = self.$div.find(".frequency-slider"); // <input>
+	//self.$div.find(".frequency-slider").slider("option","max",10);	
+	self.$vectorSinkFrequencySliderValue = self.$div.find(".frequnecy-slider-value"); // <p>
+
+	self.changeVectorSinkFrequencySlider = function () {
+		self.$vectorSinkFrequencySliderValue.text(self.$vectorSinkFrequencySlider.val());
+  		self.Frequencyfactor = self.$vectorSinkFrequencySlider.val();
+		//PrintWriter out = new PrintWriter("/Users/marcos/Documents/research/relia/ReliaProject/freq_shared.txt");
+		//br.write("ad");
+	};
+	self.changeVectorSinkFrequencySlider();
+
+	self.$vectorSinkFrequencySlider.change(self.changeVectorSinkFrequencySlider);
+
 
 	self.$div.find(".Inc-Average-button").click(function() {
 		self.averageInput += 1;
@@ -611,6 +546,8 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 		}
 		
 	});
+
+
 	self.$div.find(".autoscale-button-Vector").click(function() {
 		self.zoomfactor=0
 		self.maximumView=Math.ceil(self.maxVectorSinkRe);
@@ -621,6 +558,7 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 		if (self.flagPauseRun==true) self.flagPauseRun=false;
 		else self.flagPauseRun=true;
 	});/**/
+
 
 	self.chart = new google.visualization.LineChart($constChartDiv[0]);
 
@@ -683,11 +621,14 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 			}
 
 			var params = data.data.params;
+			var max_freqqq=params.x_start+params.x_step*(params.vlen-1)
+			self.$vectorSinkFrequencySlider.attr("min",params.x_start);
+			self.$vectorSinkFrequencySlider.attr("max",max_freqqq);
 
-			/*console.log(data.data.block_type);
-			console.log(data.data.type);
-			console.log(params);
-			console.log(data.data.data);/**/
+			//console.log(data.data.block_type);
+			//console.log(data.data.type);
+			console.log(self.Frequencyfactor);
+			//console.log(data.data.data);/**/
 
 			var realData = data.data.data.streams[0];
 
@@ -710,14 +651,14 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 					];
 
 				for (var pos = 0; pos < realData.length; ++pos) {
-					formattedData.push([ pos, self.averageBuffer[pos]]);
+					formattedData.push([ params.x_start+params.x_step*pos, self.averageBuffer[pos]]);
 					if(self.averageBuffer[pos] <self.minVectorSinkRe)
 						self.minVectorSinkRe=self.averageBuffer[pos]; 
 					if(self.averageBuffer[pos] >self.maxVectorSinkRe)
 						self.maxVectorSinkRe=self.averageBuffer[pos] ;
 					
 				}
-				self.averageBuffer=Array(1024).fill(0);
+				self.averageBuffer=Array(params.vlen).fill(0);
 
 				var dataTable = google.visualization.arrayToDataTable(formattedData);
 				if( self.flagPauseRun==true)
