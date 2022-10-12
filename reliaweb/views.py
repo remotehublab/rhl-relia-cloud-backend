@@ -1,7 +1,7 @@
 import json
 import time
 
-from flask import Blueprint, jsonify, render_template, g
+from flask import Blueprint, jsonify, render_template, request, g
 
 from reliaweb import redis_store
 
@@ -55,37 +55,57 @@ def get_device_blocks(device_identifier):
         "success": True
     })
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>')
-def get_data(device_identifier, block_identifier):
-    block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}'
-    
+@api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
+def manage_data(device_identifier, block_identifier):
 
-    initial_time = time.time()
-    data = None
-    while True:
+    if request.method == 'GET':
+        gnuradio2web_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:from-gnuradio'
+        
 
-        empty = False
-        while not empty:
-            newest_data = redis_store.lpop(block_key)
-            if newest_data is None:
-                empty = True
-            else:
-                data = newest_data
+        initial_time = time.time()
+        data = None
+        while True:
 
-        if data:
-            # If there is data, we exit immediately
-            break
+            empty = False
+            while not empty:
+                newest_data = redis_store.lpop(gnuradio2web_block_key)
+                if newest_data is None:
+                    empty = True
+                else:
+                    data = newest_data
 
-        if time.time() - initial_time > 5:
-            # If we have been waiting for more than 5 seconds
-            # then exit (even without data)
-            break
+            if data:
+                # If there is data, we exit immediately
+                break
 
-        time.sleep(0.05)        
+            if time.time() - initial_time > 5:
+                # If we have been waiting for more than 5 seconds
+                # then exit (even without data)
+                break
 
-    if data is None:
-        return jsonify(success=True, data=None)
+            time.sleep(0.05)        
 
-    decoded_data = json.loads(data)
+        if data is None:
+            return jsonify(success=True, data=None)
 
-    return jsonify(success=True, data=decoded_data)
+        decoded_data = json.loads(data)
+
+        return jsonify(success=True, data=decoded_data)
+    elif request.method == 'POST':
+
+        block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
+        if redis_store.get(block_alive_key) != b'1':
+            return jsonify(success=False, message="Block does not exist"), 404
+
+        web2gnuradio_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:to-gnuradio'
+
+        request_data = request.get_json(silent=True, force=True)
+
+        pipeline = redis_store.pipeline()
+        pipeline.rpush(web2gnuradio_block_key, json.dumps(request_data))
+        pipeline.expire(web2gnuradio_block_key, 60)
+        pipeline.execute()
+
+        return jsonify(success=True)
+    else:
+        return "Method not allowed", 400

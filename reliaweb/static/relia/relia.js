@@ -472,6 +472,8 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 	    "</div>"
 	);
 	
+	self.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
+
 	var $constChartDiv = self.$div.find(".vector-chart");
 	self.$gridCheckbox = self.$div.find(".vector-sink-grid-checkbox");
 	
@@ -484,16 +486,26 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
     self.averageBuffer=Array(1024).fill(0);
 
 	//self.redraw = function() {
-	//self.Frequencyfactor = 0;
+	self.frequencyFactor = 0;
 	self.$vectorSinkFrequencySlider = self.$div.find(".frequency-slider"); // <input>
 	//self.$div.find(".frequency-slider").slider("option","max",10);	
 	self.$vectorSinkFrequencySliderValue = self.$div.find(".frequnecy-slider-value"); // <p>
 
 	self.changeVectorSinkFrequencySlider = function () {
 		self.$vectorSinkFrequencySliderValue.text(self.$vectorSinkFrequencySlider.val());
-  		self.Frequencyfactor = self.$vectorSinkFrequencySlider.val();
-		//PrintWriter out = new PrintWriter("/Users/marcos/Documents/research/relia/ReliaProject/freq_shared.txt");
-		//br.write("ad");
+  		self.frequencyFactor = self.$vectorSinkFrequencySlider.val();
+
+		$.ajax({
+			type: "POST",
+			url: self.url, 
+			data: JSON.stringify({
+				"frequencyFactor": self.frequencyFactor
+			}),
+			contentType: "application/json",
+			dataType: "json"
+		}).done(function () {
+			// TBD
+		});
 	};
 	self.changeVectorSinkFrequencySlider();
 
@@ -562,8 +574,6 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 
 	self.chart = new google.visualization.LineChart($constChartDiv[0]);
 
-	self.url = window.API_BASE_URL + "data/current/devices/" + deviceIdentifier + "/blocks/" + blockIdentifier;
-
 	self.redraw = function() {
 
 		var GridColor='#808080';
@@ -627,7 +637,7 @@ function ReliaVectorSink($divElement, deviceIdentifier, blockIdentifier) {
 
 			//console.log(data.data.block_type);
 			//console.log(data.data.type);
-			console.log(self.Frequencyfactor);
+			//console.log(self.frequencyFactor);
 			//console.log(data.data.data);/**/
 
 			var realData = data.data.data.streams[0];
