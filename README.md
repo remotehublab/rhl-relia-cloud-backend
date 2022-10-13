@@ -1,4 +1,4 @@
-# relia-web
+# relia-backend
 
 Create a virtual environment:
 
