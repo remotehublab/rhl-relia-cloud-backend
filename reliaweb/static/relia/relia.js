@@ -83,10 +83,18 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
 	        "<input class=\"noise-slider\" type=\"range\" min=\"0\" max=\"100\" value=\"0\">" +
 		"<p class=\"noise-slider-value\" value=\"1\"></p> <br>" +
-	        //"<input type=\"button\" id=\"PauseRun\" value=\"Pause\" onClick=\"TimSinkPauseRun()\" <br>" +
-			//"<input type=\"button\" id=\"myButton1\" onClick=\"if(this.value=='Run') { this.value='Pause'; } else { this.value='Run'; }\" value=\"Pause\" <br>" +
-			//"<input type=\"button\" id=\"myButton1\" onClick=RunPausePressed(this) <br>" +
 		    "<input type=\"submit\" name=\"checkout\" class=\"button pause-button\" value=\"Pause/Run\"> <br>" +
+		"<p>Amplitude</p>" +
+	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
+	        "<input class=\"amplitude-slider\" type=\"range\" min=\"0\" max=\"100\" >" +
+		"<p class=\"amplitude-slider-value\" value=\"1\"></p> " +
+		"<p>Offset</p>" +
+	        //"<input type=\"range\" min=\"0\" max=\"100\" value=\"1\" onchange=\"TimeSink_NoiseSlide(this.value)\" <br>" +
+	        "<input class=\"offset-slider\" type=\"range\" min=\"0\" max=\"100\" >" +
+		"<p class=\"offset-slider-value\" value=\"1\"></p> " +
+		"<br>" + 
+
+
 
 		"<form>" +
 		"  <select class=\"TimeSink_NumberOfPoints2Plot\">" + 
@@ -113,6 +121,60 @@ function ReliaTimeSink($divElement, deviceIdentifier, blockIdentifier) {
 	self.zoomInTimeSink=1;
     self.zoomOutTimeSink=1;
     self.flagPauseRun=true;
+
+//
+	//self.redraw = function() {
+	self.dynamicAmplitudeTimeVal = 0;
+	self.$timeSinkAmplitudeSlider = self.$div.find(".amplitude-slider"); // <input>
+	//self.$div.find(".frequency-slider").slider("option","max",10);	
+	self.$timeSinkAmplitudeSliderValue = self.$div.find(".amplitude-slider-value"); // <p>
+
+	self.changeTimeSinkAmplitudeSlider = function () {
+		self.$timeSinkAmplitudeSliderValue.text(self.$timeSinkAmplitudeSlider.val());
+  		self.dynamicAmplitudeTimeVal = self.$timeSinkAmplitudeSlider.val();
+
+		$.ajax({
+			type: "POST",
+			url: self.url, 
+			data: JSON.stringify({
+				"dynamicAmplitudeTimeVal": self.dynamicAmplitudeTimeVal
+			}),
+			contentType: "application/json",
+			dataType: "json"
+		}).done(function () {
+			// TBD
+		});
+	};
+	self.changeTimeSinkAmplitudeSlider();
+
+	self.$timeSinkAmplitudeSlider.change(self.changeTimeSinkAmplitudeSlider);
+//
+	//self.redraw = function() {
+	self.dynamicOffsetTimeVal = 0;
+	self.$timeSinkOffsetSlider = self.$div.find(".offset-slider"); // <input>
+	//self.$div.find(".frequency-slider").slider("option","max",10);	
+	self.$timeSinkOffsetSliderValue = self.$div.find(".offset-slider-value"); // <p>
+
+	self.changeTimeSinkOffsetSlider = function () {
+		self.$timeSinkOffsetSliderValue.text(self.$timeSinkOffsetSlider.val());
+  		self.dynamicOffsetTimeVal = self.$timeSinkOffsetSlider.val();
+
+		$.ajax({
+			type: "POST",
+			url: self.url, 
+			data: JSON.stringify({
+				"dynamicOffsetTimeVal": self.dynamicOffsetTimeVal
+			}),
+			contentType: "application/json",
+			dataType: "json"
+		}).done(function () {
+			// TBD
+		});
+	};
+	self.changeTimeSinkOffsetSlider();
+
+	self.$timeSinkOffsetSlider.change(self.changeTimeSinkOffsetSlider);
+//
 
 	self.$div.find(".zoom-in-button").click(function() {
 		self.zoomInTimeSink += 1;
