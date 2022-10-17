@@ -22,9 +22,12 @@ def create_app(config_name: str = 'default'):
 
 
     # Register views
-    from .views import main_blueprint, api_blueprint
+    from .views.main import main_blueprint
+    from .views.api import api_blueprint
+    from .views.user import user_blueprint
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')
+    app.register_blueprint(user_blueprint, url_prefix='/user')
 
     return app

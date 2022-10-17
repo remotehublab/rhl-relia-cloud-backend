@@ -1,16 +1,9 @@
 import json
 import time
 
-from flask import Blueprint, jsonify, render_template, request, g
+from flask import Blueprint, jsonify, request, g
 
 from reliaweb import redis_store
-
-
-main_blueprint = Blueprint('main', __name__)
-
-@main_blueprint.route('/')
-def index():
-    return render_template("index.html")
 
 api_blueprint = Blueprint('api', __name__)
 

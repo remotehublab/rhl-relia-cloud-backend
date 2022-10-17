@@ -1,3 +1,4 @@
 export FLASK_DEBUG=1
 export FLASK_RUN_PORT=6003
 export FLASK_APP=autoapp
+export UPLOAD_FOLDER='uploads'
