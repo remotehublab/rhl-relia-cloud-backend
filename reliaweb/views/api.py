@@ -28,7 +28,7 @@ def get_devices():
     device_names = [ device_name.decode() for device_name in (devices_set or ()) ]
 
     return jsonify({
-        "devices": device_names,
+        "devices": sorted(device_names),
         "success": True
     })
 
@@ -44,7 +44,7 @@ def get_device_blocks(device_identifier):
             block_names.remove(block_identifier)
 
     return jsonify({
-        "blocks": block_names,
+        "blocks": sorted(block_names),
         "success": True
     })
 
