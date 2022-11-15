@@ -2,7 +2,7 @@ import os
 import logging
 
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, current_app, request
+from flask import Blueprint, jsonify, current_app, request, make_response
 
 from reliaweb.auth import get_current_user
 from reliaweb import weblab
@@ -19,9 +19,13 @@ def initial_url():
 def auth():
     current_user = get_current_user()
     if current_user['anonymous']:
-        return jsonify(success=True, auth=False)
+        return _corsify_actual_response(jsonify(success=True, auth=False))
 
-    return jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id'])
+    return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
+
+def _corsify_actual_response(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 @user_blueprint.route('/uploads/<file_id>', methods=['POST'])
 def file_upload(file_id):
