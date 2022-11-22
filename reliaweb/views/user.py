@@ -1,4 +1,5 @@
 import os
+import subprocess
 import logging
 
 from werkzeug.utils import secure_filename
@@ -23,14 +24,29 @@ def auth():
 
 @user_blueprint.route('/upload', methods=['POST'])
 def file_upload():
-    upload_folder = 'uploads'
-    target=os.path.join(upload_folder,'test_docs')
+    current_user = get_current_user()
+    if current_user['anonymous']:
+       return _corsify_actual_response(jsonify(success=False))
+    upload_folder = 'reliaweb/views/uploads'
+    subtarget=os.path.join(upload_folder,current_user['username_unique'])
+    if not os.path.isdir(subtarget):
+        os.mkdir(subtarget)
+    target=os.path.join(subtarget,'transmitter')
     if not os.path.isdir(target):
         os.mkdir(target)
+    target2=os.path.join(subtarget,'receiver')
+    if not os.path.isdir(target2):
+        os.mkdir(target2)
     file = request.files['file'] 
     filename = secure_filename(file.filename)
-    destination="/".join([target, filename])
-    file.save(destination)
+    file2 = request.files['file2']
+    filename2 = secure_filename(file2.filename)
+    if filename.endswith('.grc'):
+        destination="/".join([target, filename])
+        file.save(destination)
+    if filename2.endswith('.grc'):
+        destination2="/".join([target2, filename2])
+        file2.save(destination2)
     return _corsify_actual_response(jsonify(success=True))
 
 def _corsify_actual_response(response):
