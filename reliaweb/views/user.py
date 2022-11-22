@@ -45,10 +45,10 @@ def transact():
     t = []
     for i in range(min(5, len(files))):
         if files[i]:
-            r.append(os.path.basename(files[i]).split('/')[-1])
+            t.append(os.path.basename(files[i]).split('/')[-1])
     for j in range(min(5, len(files2))):
         if files2[j]:
-            t.append(os.path.basename(files2[j]).split('/')[-1])
+            r.append(os.path.basename(files2[j]).split('/')[-1])
     return _corsify_actual_response(jsonify(success=True, receiver_files=r, transmitter_files=t))
 
 @user_blueprint.route('/upload', methods=['POST'])
