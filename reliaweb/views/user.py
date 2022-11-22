@@ -1,3 +1,4 @@
+import glob
 import os
 import logging
 
@@ -20,6 +21,35 @@ def auth():
         return _corsify_actual_response(jsonify(success=True, auth=False))
 
     return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
+
+@user_blueprint.route('/transactions')
+def transact():
+    current_user = get_current_user()
+    if current_user['anonymous']:
+       return _corsify_actual_response(jsonify(success=False))
+    upload_folder = 'reliaweb/views/uploads'
+    subtarget=os.path.join(upload_folder,current_user['username_unique'])
+    if not os.path.isdir(subtarget):
+        os.mkdir(subtarget)
+    target=os.path.join(subtarget,'transmitter')
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    target2=os.path.join(subtarget,'receiver')
+    if not os.path.isdir(target2):
+        os.mkdir(target2)
+    files_path = os.path.join(target, '*')
+    files_path2 = os.path.join(target2, '*')
+    files = sorted(glob.iglob(files_path), key=os.path.getctime, reverse=True) 
+    files2 = sorted(glob.iglob(files_path2), key=os.path.getctime, reverse=True) 
+    r = []
+    t = []
+    for i in range(min(5, len(files))):
+        if files[i]:
+            r.append(os.path.basename(files[i]).split('/')[-1])
+    for j in range(min(5, len(files2))):
+        if files2[j]:
+            t.append(os.path.basename(files2[j]).split('/')[-1])
+    return _corsify_actual_response(jsonify(success=True, receiver_files=r, transmitter_files=t))
 
 @user_blueprint.route('/upload', methods=['POST'])
 def file_upload():
