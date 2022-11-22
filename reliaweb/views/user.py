@@ -3,13 +3,11 @@ import logging
 
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, current_app, request, make_response
-#from flask_cors import CORS, cross_origin
 
 from reliaweb.auth import get_current_user
 from reliaweb import weblab
 
 user_blueprint = Blueprint('user', __name__)
-# CORS(user_blueprint, expose_headers='Authorization', resources={r"/upload": {"origins": "http://localhost:3000/"}})
 
 @weblab.initial_url
 def initial_url():
@@ -24,7 +22,6 @@ def auth():
     return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
 
 @user_blueprint.route('/upload', methods=['POST'])
-#@cross_origin(origin='localhost', headers=['Content-Type','Authorization'])
 def file_upload():
     upload_folder = 'uploads'
     target=os.path.join(upload_folder,'test_docs')
