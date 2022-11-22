@@ -2,7 +2,6 @@ import json
 import time
 
 from flask import Blueprint, jsonify, request, g
-
 from reliaweb import redis_store
 
 api_blueprint = Blueprint('api', __name__)
@@ -27,10 +26,10 @@ def get_devices():
     devices_set = redis_store.smembers(devices_key)
     device_names = [ device_name.decode() for device_name in (devices_set or ()) ]
 
-    return jsonify({
+    return _corsify_actual_response(jsonify({
         "devices": sorted(device_names),
         "success": True
-    })
+    }))
 
 @api_blueprint.route('/data/current/devices/<device_identifier>/blocks')
 def get_device_blocks(device_identifier):
@@ -43,10 +42,10 @@ def get_device_blocks(device_identifier):
         if redis_store.get(block_alive_key) != b'1':
             block_names.remove(block_identifier)
 
-    return jsonify({
+    return _corsify_actual_response(jsonify({
         "blocks": sorted(block_names),
         "success": True
-    })
+    }))
 
 @api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
 def manage_data(device_identifier, block_identifier):
@@ -79,16 +78,16 @@ def manage_data(device_identifier, block_identifier):
             time.sleep(0.05)        
 
         if data is None:
-            return jsonify(success=True, data=None)
+            return _corsify_actual_response(jsonify(success=True, data=None))
 
         decoded_data = json.loads(data)
 
-        return jsonify(success=True, data=decoded_data)
+        return _corsify_actual_response(jsonify(success=True, data=decoded_data))
     elif request.method == 'POST':
 
         block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
         if redis_store.get(block_alive_key) != b'1':
-            return jsonify(success=False, message="Block does not exist"), 404
+            return _corsify_actual_response(jsonify(success=False, message="Block does not exist"), 404)
 
         web2gnuradio_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:to-gnuradio'
 
@@ -99,6 +98,13 @@ def manage_data(device_identifier, block_identifier):
         pipeline.expire(web2gnuradio_block_key, 60)
         pipeline.execute()
 
-        return jsonify(success=True)
+        return _corsify_actual_response(jsonify(success=True))
     else:
         return "Method not allowed", 400
+
+def _corsify_actual_response(response):
+    response.headers['Access-Control-Allow-Origin'] = '*';
+    response.headers['Access-Control-Allow-Credentials'] = 'true';
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS, GET, POST';
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control';
+    return response

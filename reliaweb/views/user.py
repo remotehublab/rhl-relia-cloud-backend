@@ -3,17 +3,17 @@ import logging
 
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, current_app, request, make_response
+from flask_cors import CORS, cross_origin
 
 from reliaweb.auth import get_current_user
 from reliaweb import weblab
 
-logger = logging.getLogger(__name__)
-
 user_blueprint = Blueprint('user', __name__)
+CORS(user_blueprint, expose_headers='Authorization', resources={r"/upload": {"origins": "http://localhost:3000/"}})
 
 @weblab.initial_url
 def initial_url():
-    return "http://localhost:3000"
+    return "http://localhost:3000/"
 
 @user_blueprint.route('/auth')
 def auth():
@@ -23,22 +23,22 @@ def auth():
 
     return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
 
-def _corsify_actual_response(response):
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
-@user_blueprint.route('/uploads/<file_id>', methods=['POST'])
-def file_upload(file_id):
-    upload_folder = current_app.config['UPLOAD_FOLDER']
+@user_blueprint.route('/upload', methods=['POST'])
+@cross_origin(origin='localhost', headers=['Content-Type','Authorization'])
+def file_upload():
+    upload_folder = '/mnt/c/Users/Brian/Documents/upload_folder'
     target=os.path.join(upload_folder,'test_docs')
     if not os.path.isdir(target):
         os.mkdir(target)
-    logger.info("welcome to upload`")
     file = request.files['file'] 
     filename = secure_filename(file.filename)
-    destinatio = os.path.join(target, filename)
+    destination="/".join([target, filename])
     file.save(destination)
-    session['uploadFilePath']=destination
-    response="Something"
-    return response
+    return _corsify_actual_response(jsonify(success=True))
 
+def _corsify_actual_response(response):
+    response.headers['Access-Control-Allow-Origin'] = '*';
+    response.headers['Access-Control-Allow-Credentials'] = 'true';
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS, GET, POST';
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control';
+    return response
