@@ -1,5 +1,4 @@
 import os
-import subprocess
 import logging
 
 from werkzeug.utils import secure_filename
