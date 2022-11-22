@@ -26,7 +26,7 @@ def auth():
 @user_blueprint.route('/upload', methods=['POST'])
 @cross_origin(origin='localhost', headers=['Content-Type','Authorization'])
 def file_upload():
-    upload_folder = '/mnt/c/Users/Brian/Documents/upload_folder'
+    upload_folder = 'uploads'
     target=os.path.join(upload_folder,'test_docs')
     if not os.path.isdir(target):
         os.mkdir(target)
