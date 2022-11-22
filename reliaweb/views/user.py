@@ -1,4 +1,5 @@
 import os
+import subprocess
 import logging
 
 from werkzeug.utils import secure_filename
@@ -23,7 +24,7 @@ def auth():
 
 @user_blueprint.route('/upload', methods=['POST'])
 def file_upload():
-    upload_folder = 'uploads'
+    upload_folder = 'reliaweb/views/uploads'
     target=os.path.join(upload_folder,'test_docs')
     if not os.path.isdir(target):
         os.mkdir(target)
@@ -31,6 +32,7 @@ def file_upload():
     filename = secure_filename(file.filename)
     destination="/".join([target, filename])
     file.save(destination)
+    subprocess.call(['python', 'reliaweb/views/gr_runner_files/runner.py', '-i', 'reliaweb/views/uploads/test_docs/' + filename])
     return _corsify_actual_response(jsonify(success=True))
 
 def _corsify_actual_response(response):
