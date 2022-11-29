@@ -3,7 +3,7 @@ import os
 import logging
 
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, current_app, request, make_response
+from flask import Blueprint, jsonify, current_app, request, make_response, send_file
 
 from reliaweb.auth import get_current_user
 from reliaweb import weblab
@@ -28,13 +28,13 @@ def transact():
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
     upload_folder = 'reliaweb/views/uploads'
-    subtarget=os.path.join(upload_folder,current_user['username_unique'])
+    subtarget = os.path.join(upload_folder,current_user['username_unique'])
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
-    target=os.path.join(subtarget,'transmitter')
+    target = os.path.join(subtarget,'transmitter')
     if not os.path.isdir(target):
         os.mkdir(target)
-    target2=os.path.join(subtarget,'receiver')
+    target2 = os.path.join(subtarget,'receiver')
     if not os.path.isdir(target2):
         os.mkdir(target2)
     files_path = os.path.join(target, '*')
@@ -45,14 +45,33 @@ def transact():
     t = []
     for i in range(min(5, len(files))):
         if files[i]:
-            t.append(os.path.basename(files[i]).split('/')[-1])
+            filename = os.path.basename(files[i]).split('/')[-1]
+            t.append(filename)
+            transact_helper(filename, current_user['username_unique'], 't')
     for j in range(min(5, len(files2))):
         if files2[j]:
-            r.append(os.path.basename(files2[j]).split('/')[-1])
-    return _corsify_actual_response(jsonify(success=True, receiver_files=r, transmitter_files=t))
+            filename = os.path.basename(files2[j]).split('/')[-1]
+            r.append(filename)
+            transact_helper(filename, current_user['username_unique'], 'r')
+    return _corsify_actual_response(jsonify(success=True, receiver_files=r, transmitter_files=t, username=current_user['username_unique']))
 
-@user_blueprint.route('/upload', methods=['POST'])
+@user_blueprint.route('/transactions/<username>/<side>/<filename>', methods=['GET', 'POST'])
+def transact_helper(filename, username, side):
+    current_user = get_current_user()
+    upload_folder = 'reliaweb/views/uploads'
+    subtarget = os.path.join(upload_folder,current_user['username_unique'])
+    if side == 't':
+       target = os.path.join(subtarget,'transmitter')
+    if side == 'r':
+       target = os.path.join(subtarget,'receiver')
+    file = os.path.join(target, filename)
+    file2 = os.path.join(*(file.split(os.path.sep)[1:]))
+    response = make_response(send_file(file2))
+    return _corsify_actual_response(response)
+
+@user_blueprint.route('/upload_t', methods=['POST'])
 def file_upload():
+    print('Made it 1', flush=True)
     current_user = get_current_user()
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
@@ -63,19 +82,33 @@ def file_upload():
     target=os.path.join(subtarget,'transmitter')
     if not os.path.isdir(target):
         os.mkdir(target)
-    target2=os.path.join(subtarget,'receiver')
-    if not os.path.isdir(target2):
-        os.mkdir(target2)
     file = request.files['file'] 
     filename = secure_filename(file.filename)
-    file2 = request.files['file2']
-    filename2 = secure_filename(file2.filename)
     if filename.endswith('.grc'):
         destination="/".join([target, filename])
         file.save(destination)
-    if filename2.endswith('.grc'):
-        destination2="/".join([target2, filename2])
-        file2.save(destination2)
+        print('Made it 2', flush=True)
+    return _corsify_actual_response(jsonify(success=True))
+
+@user_blueprint.route('/upload_r', methods=['POST'])
+def file_upload2():
+    print('Made it 1', flush=True)
+    current_user = get_current_user()
+    if current_user['anonymous']:
+       return _corsify_actual_response(jsonify(success=False))
+    upload_folder = 'reliaweb/views/uploads'
+    subtarget=os.path.join(upload_folder,current_user['username_unique'])
+    if not os.path.isdir(subtarget):
+        os.mkdir(subtarget)
+    target=os.path.join(subtarget,'receiver')
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    file = request.files['file'] 
+    filename = secure_filename(file.filename)
+    if filename.endswith('.grc'):
+        destination="/".join([target, filename])
+        file.save(destination)
+        print('Made it 2', flush=True)
     return _corsify_actual_response(jsonify(success=True))
 
 def _corsify_actual_response(response):
