@@ -7,6 +7,7 @@ class Config:
     WEBLAB_PASSWORD = os.environ.get('WEBLAB_PASSWORD')
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
     USE_FAKE_USERS = False
+    CDN_URL = os.environ.get('CDN_URL')
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -14,6 +15,7 @@ class DevelopmentConfig(Config):
     WEBLAB_USERNAME = os.environ.get('WEBLAB_USERNAME') or 'weblab'
     WEBLAB_PASSWORD = os.environ.get('WEBLAB_PASSWORD') or 'password'
     USE_FAKE_USERS = os.environ.get('USE_FAKE_USERS', '1') in ('1', 'true', 'True')
+    CDN_URL = os.environ.get('CDN_URL') or 'http://localhost:3000/'
 
 class StagingConfig(Config):
     DEBUG = False

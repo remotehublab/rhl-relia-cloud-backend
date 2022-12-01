@@ -1,5 +1,5 @@
-import glob
 import os
+import glob
 import logging
 
 from werkzeug.utils import secure_filename
@@ -12,7 +12,7 @@ user_blueprint = Blueprint('user', __name__)
 
 @weblab.initial_url
 def initial_url():
-    return "http://localhost:3000/"
+    return current_app['CDN_URL']
 
 @user_blueprint.route('/auth')
 def auth():
@@ -27,80 +27,62 @@ def transact():
     current_user = get_current_user()
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
-    upload_folder = 'reliaweb/views/uploads'
+    upload_folder = 'uploads'
     subtarget = os.path.join(upload_folder,current_user['username_unique'])
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
-    target = os.path.join(subtarget,'transmitter')
-    if not os.path.isdir(target):
-        os.mkdir(target)
-    target2 = os.path.join(subtarget,'receiver')
-    if not os.path.isdir(target2):
-        os.mkdir(target2)
-    files_path = os.path.join(target, '*')
-    files_path2 = os.path.join(target2, '*')
-    files = sorted(glob.iglob(files_path), key=os.path.getctime, reverse=True) 
-    files2 = sorted(glob.iglob(files_path2), key=os.path.getctime, reverse=True) 
-    r = []
-    t = []
-    for i in range(min(5, len(files))):
-        if files[i]:
-            filename = os.path.basename(files[i]).split('/')[-1]
-            t.append(filename)
-            transact_helper(filename, current_user['username_unique'], 't')
-    for j in range(min(5, len(files2))):
-        if files2[j]:
-            filename = os.path.basename(files2[j]).split('/')[-1]
-            r.append(filename)
-            transact_helper(filename, current_user['username_unique'], 'r')
-    return _corsify_actual_response(jsonify(success=True, receiver_files=r, transmitter_files=t, username=current_user['username_unique']))
+    transmitter_target = os.path.join(subtarget,'transmitter')
+    if not os.path.isdir(transmitter_target):
+        os.mkdir(transmitter_target)
+    receiver_target = os.path.join(subtarget,'receiver')
+    if not os.path.isdir(receiver_target):
+        os.mkdir(receiver_target)
+    transmitter_files_path = os.path.join(transmitter_target, '*')
+    receiver_files_path = os.path.join(receiver_target, '*')
+    transmitter_file_names = sorted(glob.iglob(transmitter_files_path), key=os.path.getctime, reverse=True) 
+    receiver_file_names = sorted(glob.iglob(receiver_files_path), key=os.path.getctime, reverse=True) 
+
+    transmitter_files = []
+    receiver_files = []
+    for transmitter_filename in transmitter_file_names[:5]:
+        filename = os.path.basename(transmitter_filename).split('/')[-1]
+        transmitter_files.append(filename)
+        transact_helper(filename, current_user['username_unique'], 'transmitter')
+
+    for receiver_filename in receiver_file_names[:5]:
+        filename = os.path.basename(receiver_filename).split('/')[-1]
+        receiver_files.append(filename)
+        transact_helper(filename, current_user['username_unique'], 'receiver')
+
+    return _corsify_actual_response(jsonify(success=True, 
+                receiver_files=receiver_files, transmitter_files=transmitter_files, 
+                username=current_user['username_unique']))
 
 @user_blueprint.route('/transactions/<username>/<side>/<filename>', methods=['GET', 'POST'])
 def transact_helper(filename, username, side):
+    if side not in ('transmitter', 'receiver'):
+        return "Target not found", 404
     current_user = get_current_user()
-    upload_folder = 'reliaweb/views/uploads'
+    upload_folder = os.path.join(os.path.abspath('.'), 'uploads')
     subtarget = os.path.join(upload_folder,current_user['username_unique'])
-    if side == 't':
-       target = os.path.join(subtarget,'transmitter')
-    if side == 'r':
-       target = os.path.join(subtarget,'receiver')
+    target = os.path.join(subtarget, side)
     file = os.path.join(target, filename)
-    file2 = os.path.join(*(file.split(os.path.sep)[1:]))
-    response = make_response(send_file(file2))
+    response = make_response(send_file(file))
     return _corsify_actual_response(response)
 
-@user_blueprint.route('/upload_t', methods=['POST'])
-def file_upload():
-    print('Made it 1', flush=True)
-    current_user = get_current_user()
-    if current_user['anonymous']:
-       return _corsify_actual_response(jsonify(success=False))
-    upload_folder = 'reliaweb/views/uploads'
-    subtarget=os.path.join(upload_folder,current_user['username_unique'])
-    if not os.path.isdir(subtarget):
-        os.mkdir(subtarget)
-    target=os.path.join(subtarget,'transmitter')
-    if not os.path.isdir(target):
-        os.mkdir(target)
-    file = request.files['file'] 
-    filename = secure_filename(file.filename)
-    if filename.endswith('.grc'):
-        destination="/".join([target, filename])
-        file.save(destination)
-        print('Made it 2', flush=True)
-    return _corsify_actual_response(jsonify(success=True))
+@user_blueprint.route('/upload/<target_device>', methods=['POST'])
+def file_upload(target_device):
+    if target_device not in ('transmitter', 'receiver'):
+        return "Target not found", 404
 
-@user_blueprint.route('/upload_r', methods=['POST'])
-def file_upload2():
-    print('Made it 1', flush=True)
     current_user = get_current_user()
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
-    upload_folder = 'reliaweb/views/uploads'
+    upload_folder = 'uploads'
     subtarget=os.path.join(upload_folder,current_user['username_unique'])
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
-    target=os.path.join(subtarget,'receiver')
+    target=os.path.join(subtarget, target_device)
     if not os.path.isdir(target):
         os.mkdir(target)
     file = request.files['file'] 
@@ -108,7 +90,6 @@ def file_upload2():
     if filename.endswith('.grc'):
         destination="/".join([target, filename])
         file.save(destination)
-        print('Made it 2', flush=True)
     return _corsify_actual_response(jsonify(success=True))
 
 def _corsify_actual_response(response):
