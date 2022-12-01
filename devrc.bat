@@ -1,0 +1,4 @@
+set FLASK_DEBUG=1
+set FLASK_RUN_PORT=6003
+set FLASK_APP=autoapp
+set UPLOAD_FOLDER='uploads'
