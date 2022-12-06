@@ -5,8 +5,8 @@ import logging
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, current_app, request, make_response, send_file
 
-from reliaweb.auth import get_current_user
-from reliaweb import weblab
+from reliabackend.auth import get_current_user
+from reliabackend import weblab
 
 user_blueprint = Blueprint('user', __name__)
 

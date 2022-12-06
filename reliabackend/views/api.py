@@ -2,7 +2,7 @@ import json
 import time
 
 from flask import Blueprint, jsonify, request, g
-from reliaweb import redis_store
+from reliabackend import redis_store
 
 api_blueprint = Blueprint('api', __name__)
 
