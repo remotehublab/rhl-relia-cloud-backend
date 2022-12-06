@@ -13,7 +13,7 @@ sys.stdout = open('logs/stdout.txt', 'a')
 sys.stderr = open('logs/stderr.txt', 'a')
 
 from reliabackend import create_app
-application = create_app('production')
+application = create_app(os.environ['FLASK_CONFIG'])
 
 import logging
 
