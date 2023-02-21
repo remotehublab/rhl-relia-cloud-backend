@@ -8,6 +8,8 @@ import jsonpickle
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, current_app, request, make_response, send_file, redirect
 
+from weblablib import poll as wl_poll
+
 from reliabackend.auth import get_current_user
 from reliabackend import weblab
 
@@ -35,6 +37,15 @@ def route(user_id):
     current_app.logger.info(request_data)
     response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=request_data, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
+
+@user_blueprint.route('/poll')
+def poll():
+    wl_poll()
+    current_user = get_current_user()
+    if current_user['time_left'] <= 0:
+        return _corsify_actual_response(jsonify(success=False, redirectTo=current_user['back']))
+
+    return _corsify_actual_response(jsonify(success=True))
 
 @user_blueprint.route('/transactions')
 def transact():
