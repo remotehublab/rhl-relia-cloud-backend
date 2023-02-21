@@ -8,3 +8,4 @@ pyparsing==3.0.9
 redis==4.3.4
 Werkzeug==2.2.2
 weblablib==0.5.7
+jsonpickle==3.0.1
