@@ -42,7 +42,7 @@ def route(user_id):
 def poll():
     wl_poll()
     current_user = get_current_user()
-    if current_user['time_left'] <= 0:
+    if current_user['anonymous'] or current_user['time_left'] <= 0:
         return _corsify_actual_response(jsonify(success=False, redirectTo=current_user['back']))
 
     return _corsify_actual_response(jsonify(success=True))
