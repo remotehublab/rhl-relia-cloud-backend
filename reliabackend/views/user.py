@@ -33,8 +33,8 @@ def route(user_id):
     
     request_data = request.get_json(silent=True, force=True)
     current_app.logger.info(request_data)
-    requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=request_data, headers={'relia-secret': 'password'}, timeout=(30, 30))
-    return _corsify_actual_response(jsonify(success=True))
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=request_data, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
+    return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/transactions')
 def transact():
