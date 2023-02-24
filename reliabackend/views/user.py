@@ -1,9 +1,14 @@
 import os
 import glob
 import logging
+import requests
+import json
+import jsonpickle
 
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, current_app, request, make_response, send_file
+from flask import Blueprint, jsonify, current_app, request, make_response, send_file, redirect
+
+from weblablib import poll as wl_poll
 
 from reliabackend.auth import get_current_user
 from reliabackend import weblab
@@ -14,13 +19,25 @@ user_blueprint = Blueprint('user', __name__)
 def initial_url():
     return current_app['CDN_URL']
 
-@user_blueprint.route('/auth')
-def auth():
+@user_blueprint.route('/route/<user_id>', methods = ['POST'])
+def route(user_id):
     current_user = get_current_user()
     if current_user['anonymous']:
-        return _corsify_actual_response(jsonify(success=True, auth=False))
+       return _corsify_actual_response(jsonify(success=False))
+    
+    request_data = request.get_json(silent=True, force=True)
+    current_app.logger.info(request_data)
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=request_data, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
+    return _corsify_actual_response(jsonify(response_json))
 
-    return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
+@user_blueprint.route('/poll')
+def poll():
+    wl_poll()
+    current_user = get_current_user()
+    if current_user['anonymous'] or current_user['time_left'] <= 0:
+        return _corsify_actual_response(jsonify(success=False, redirectTo=current_app.config['REDIRECT_URL'], user_id="null", session_id="null"))
+
+    return _corsify_actual_response(jsonify(success=True, redirectTo="null", user_id=current_user['username_unique'], session_id=current_user['session_id']))
 
 @user_blueprint.route('/transactions')
 def transact():
