@@ -23,11 +23,35 @@ def initial_url():
 def route(user_id):
     current_user = get_current_user()
     if current_user['anonymous']:
-       return _corsify_actual_response(jsonify(success=False))
+        return _corsify_actual_response(jsonify(success=False))
     
     request_data = request.get_json(silent=True, force=True)
-    current_app.logger.info(request_data)
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=request_data, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
+
+    upload_folder = 'uploads'
+    subtarget = os.path.join(upload_folder, current_user['username_unique'])
+    transmitter_target = os.path.join(subtarget, 'transmitter')
+    receiver_target = os.path.join(subtarget, 'receiver')
+    transmitter_file_path = os.path.join(transmitter_target, request_data.get('t_filename'))
+    receiver_file_path = os.path.join(receiver_target, request_data.get('r_filename'))
+    transmitter_file = open(transmitter_file_path, 'r').read()
+    receiver_file = open(receiver_file_path, 'r').read()
+
+    object = {
+        "grc_files": {
+            "receiver": {
+                "filename": request_data.get('r_filename'),
+                "content": receiver_file
+            },
+            "transmitter": {
+                "filename": request_data.get('t_filename'),
+                "content": transmitter_file
+            },
+        },
+        "priority": request_data.get('priority'),
+        "session_id": request_data.get('session_id')
+    };
+
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')
@@ -45,13 +69,13 @@ def transact():
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
     upload_folder = 'uploads'
-    subtarget = os.path.join(upload_folder,current_user['username_unique'])
+    subtarget = os.path.join(upload_folder, current_user['username_unique'])
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
-    transmitter_target = os.path.join(subtarget,'transmitter')
+    transmitter_target = os.path.join(subtarget, 'transmitter')
     if not os.path.isdir(transmitter_target):
         os.mkdir(transmitter_target)
-    receiver_target = os.path.join(subtarget,'receiver')
+    receiver_target = os.path.join(subtarget, 'receiver')
     if not os.path.isdir(receiver_target):
         os.mkdir(receiver_target)
     transmitter_files_path = os.path.join(transmitter_target, '*')
