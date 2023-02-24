@@ -19,14 +19,6 @@ user_blueprint = Blueprint('user', __name__)
 def initial_url():
     return current_app['CDN_URL']
 
-@user_blueprint.route('/auth')
-def auth():
-    current_user = get_current_user()
-    if current_user['anonymous']:
-        return _corsify_actual_response(jsonify(success=True, auth=False))
-
-    return _corsify_actual_response(jsonify(success=True, auth=True, user_id=current_user['username_unique'], session_id=current_user['session_id']))
-
 @user_blueprint.route('/route/<user_id>', methods = ['POST'])
 def route(user_id):
     current_user = get_current_user()
@@ -43,9 +35,9 @@ def poll():
     wl_poll()
     current_user = get_current_user()
     if current_user['anonymous'] or current_user['time_left'] <= 0:
-        return _corsify_actual_response(jsonify(success=False, redirectTo=current_user['back']))
+        return _corsify_actual_response(jsonify(success=False, redirectTo=current_app.config['REDIRECT_URL'], user_id="null", session_id="null"))
 
-    return _corsify_actual_response(jsonify(success=True))
+    return _corsify_actual_response(jsonify(success=True, redirectTo="null", user_id=current_user['username_unique'], session_id=current_user['session_id']))
 
 @user_blueprint.route('/transactions')
 def transact():
