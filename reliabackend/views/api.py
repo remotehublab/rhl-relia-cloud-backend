@@ -4,6 +4,7 @@ import time
 
 from flask import Blueprint, jsonify, request, g, current_app
 from reliabackend import redis_store
+from reliabackend.auth import get_current_user
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -14,16 +15,15 @@ def check_authentication():
     (typically with weblablib) and store the session
     identifier.
     """
-    # TODO: actually check authentication
-    g.session_id = "my-session-id"
+    g.session_id = get_current_user()['session_id']
 
 @api_blueprint.route('/')
 def index():
     return "Welcome to the API"
 
-@api_blueprint.route('/data/current/devices/<session_identifier>')
-def get_devices(session_identifier):
-    devices_key = f'relia:data-uploader:sessions:{session_identifier}:devices'
+@api_blueprint.route('/data/current/devices')
+def get_devices():
+    devices_key = f'relia:data-uploader:sessions:{g.session_id}:devices'
     devices_set = redis_store.smembers(devices_key)
     current_app.logger.info(devices_set)
     device_names = [ device_name.decode() for device_name in (devices_set or ()) ]
@@ -33,9 +33,9 @@ def get_devices(session_identifier):
         "success": True
     }))
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/<session_identifier>/blocks')
-def get_device_blocks(device_identifier, session_identifier):
-    blocks_key = f'relia:data-uploader:sessions:{session_identifier}:devices:{device_identifier}:blocks'
+@api_blueprint.route('/data/current/devices/<device_identifier>/blocks')
+def get_device_blocks(device_identifier):
+    blocks_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks'
     blocks_set = redis_store.smembers(blocks_key)
     block_names = [ block_name.decode() for block_name in (blocks_set or ()) ]
 
@@ -51,11 +51,11 @@ def get_device_blocks(device_identifier, session_identifier):
         "success": True
     }))
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>/<session_identifier>', methods=['GET', 'POST'])
-def manage_data(device_identifier, block_identifier, session_identifier):
+@api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
+def manage_data(device_identifier, block_identifier):
 
     if request.method == 'GET':
-        gnuradio2web_block_key = f'relia:data-uploader:sessions:{session_identifier}:devices:{device_identifier}:blocks:{block_identifier}:from-gnuradio'
+        gnuradio2web_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:from-gnuradio'
         
 
         initial_time = time.time()
@@ -89,11 +89,11 @@ def manage_data(device_identifier, block_identifier, session_identifier):
         return _corsify_actual_response(jsonify(success=True, data=decoded_data))
     elif request.method == 'POST':
 
-        block_alive_key = f'relia:data-uploader:sessions:{session_identifier}:devices:{device_identifier}:blocks:{block_identifier}:alive'
+        block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
         if redis_store.get(block_alive_key) != b'1':
             return _corsify_actual_response(jsonify(success=False, message="Block does not exist"), 404)
 
-        web2gnuradio_block_key = f'relia:data-uploader:sessions:{session_identifier}:devices:{device_identifier}:blocks:{block_identifier}:to-gnuradio'
+        web2gnuradio_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:to-gnuradio'
 
         request_data = request.get_json(silent=True, force=True)
 
