@@ -6,6 +6,7 @@ class Config:
     WEBLAB_USERNAME = os.environ.get('WEBLAB_USERNAME')
     WEBLAB_PASSWORD = os.environ.get('WEBLAB_PASSWORD')
     WEBLAB_TIMEOUT = int(os.environ.get('WEBLAB_TIMEOUT') or '120')
+    WEBLAB_CALLBACK_URL = '/weblab/relia-callback'
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
     USE_FAKE_USERS = False
     CDN_URL = os.environ.get('CDN_URL')
