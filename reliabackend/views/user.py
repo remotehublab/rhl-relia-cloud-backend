@@ -6,7 +6,7 @@ import json
 import jsonpickle
 
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, current_app, request, make_response, send_file, redirect
+from flask import Blueprint, jsonify, current_app, request, g, make_response, send_file, redirect
 
 from weblablib import poll as wl_poll
 
@@ -48,7 +48,7 @@ def route(user_id):
             },
         },
         "priority": request_data.get('priority'),
-        "session_id": request_data.get('session_id')
+        "session_id": current_user['session_id']
     };
 
     response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
