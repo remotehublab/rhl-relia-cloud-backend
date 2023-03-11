@@ -1,6 +1,7 @@
 import sys
 from flask import Flask
 from flask_redis import FlaskRedis
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from weblablib import WebLab
 
@@ -16,6 +17,10 @@ def create_app(config_name: str = 'default'):
     # Based on Flasky https://github.com/miguelgrinberg/flasky
     app = Flask(__name__)
     app.config.from_object(configurations[config_name])
+
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
 
     # Initialize plugins
     redis_store.init_app(app)
