@@ -52,7 +52,7 @@ def route(user_id):
     }
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': SCHEDULER_TOKEN}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')
