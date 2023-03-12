@@ -49,9 +49,10 @@ def route(user_id):
         },
         "priority": request_data.get('priority'),
         "session_id": current_user['session_id']
-    };
+    }
 
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': 'password'}, timeout=(30, 30)).json()
+    scheduler_token = current_app.config['SCHEDULER_TOKEN']
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': SCHEDULER_TOKEN}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')

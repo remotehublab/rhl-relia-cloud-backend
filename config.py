@@ -11,6 +11,7 @@ class Config:
     USE_FAKE_USERS = False
     CDN_URL = os.environ.get('CDN_URL')
     SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL')
+    SCHEDULER_TOKEN = os.environ.get('SCHEDULER_TOKEN')
     REDIRECT_URL = os.environ.get('REDIRECT_URL')
 
 class DevelopmentConfig(Config):
@@ -21,6 +22,7 @@ class DevelopmentConfig(Config):
     USE_FAKE_USERS = os.environ.get('USE_FAKE_USERS', '1') in ('1', 'true', 'True')
     CDN_URL = os.environ.get('CDN_URL') or 'http://localhost:3000/'
     SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL') or 'http://localhost:6002/'
+    SCHEDULER_TOKEN = os.environ.get('SCHEDULER_TOKEN') or 'password'
     REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://localhost:3000/login'
 
 class StagingConfig(Config):
