@@ -17,7 +17,7 @@ user_blueprint = Blueprint('user', __name__)
 
 @weblab.initial_url
 def initial_url():
-    return current_app.config['CDN_URL']
+    return f"{current_app.config['CDN_URL']}/loader"
 
 @user_blueprint.route('/route/<user_id>', methods = ['POST'])
 def route(user_id):
