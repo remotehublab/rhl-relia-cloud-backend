@@ -1,8 +1,11 @@
 import json
-import logging
 import time
+import zlib
+import logging
 
-from flask import Blueprint, jsonify, request, g, current_app
+from collections import OrderedDict
+
+from flask import Blueprint, jsonify, request, g, current_app, make_response
 from reliabackend import redis_store
 from reliabackend.auth import get_current_user
 
@@ -15,7 +18,10 @@ def check_authentication():
     (typically with weblablib) and store the session
     identifier.
     """
-    g.session_id = get_current_user()['session_id']
+    current_user_data = get_current_user()
+    g.session_id = current_user_data['session_id']
+    if g.session_id is None:
+        return jsonify(success=False, message="Not authenticated")
 
 @api_blueprint.route('/')
 def index():
@@ -50,6 +56,57 @@ def get_device_blocks(device_identifier):
         "blocks": sorted(block_names),
         "success": True
     }))
+
+@api_blueprint.route('/data/current/devices/<device_identifier>/all-blocks')
+def get_device_blocks_data(device_identifier):
+    last_version = request.args.get('last-version') or 'none'
+    current_version = last_version
+    initial_time = time.time()
+    max_seconds = 10
+
+    while last_version == current_version and (time.time() - initial_time) < max_seconds:
+        blocks_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks'
+        blocks_set = redis_store.smembers(blocks_key)
+        block_names = [ block_name.decode() for block_name in (blocks_set or ()) ]
+        block_data = {
+            # block_identifier: data
+        }
+
+        for block_identifier in block_names:
+            block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
+            if redis_store.get(block_alive_key) != b'1':
+                block_names.remove(block_identifier)
+                continue
+
+            gnuradio2web_block_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks:{block_identifier}:from-gnuradio'
+
+            empty = False
+            while not empty:
+                newest_data = redis_store.lpop(gnuradio2web_block_key)
+                if newest_data is None:
+                    empty = True
+                else:
+                    data = newest_data
+            block_data[block_identifier] = data
+
+        response_dict = OrderedDict()
+        response_dict['success'] = True
+        response_dict['blocks'] = []
+        response_dict['blocksData'] = OrderedDict()
+        for block in sorted(block_names):
+            response_dict['blocks'].append(block)
+            response_dict['blocksData'][block] = block_data[block]
+
+        response_json = json.dumps(response_dict, indent=4)
+        current_version = str(zlib.crc32(response_json.encode()))
+        if current_version == last_version:
+            time.sleep(0.1)
+
+    response = make_response(response_json)
+    response.headers['Content-Type'] = 'application/json'
+
+    return _corsify_actual_response(response)
+
 
 @api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
 def manage_data(device_identifier, block_identifier):
