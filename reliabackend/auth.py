@@ -14,7 +14,7 @@ def get_current_user():
             'session_id': "my-session-id",
             'anonymous': False,
             'time_left': 600, # seconds (10 minutes)
-            'locale': 'es', # English
+            'locale': 'en', # English
         }
 
     if weblab_user.is_anonymous or not weblab_user.active:
