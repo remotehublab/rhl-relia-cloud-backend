@@ -28,11 +28,11 @@ def route(user_id):
     request_data = request.get_json(silent=True, force=True)
 
     upload_folder = 'uploads'
-    subtarget = os.path.join(upload_folder, current_user['username_unique'])
+    subtarget = os.path.join(upload_folder, secure_filename(current_user['username_unique']))
     transmitter_target = os.path.join(subtarget, 'transmitter')
     receiver_target = os.path.join(subtarget, 'receiver')
-    transmitter_file_path = os.path.join(transmitter_target, request_data.get('t_filename'))
-    receiver_file_path = os.path.join(receiver_target, request_data.get('r_filename'))
+    transmitter_file_path = os.path.join(transmitter_target, secure_filename(request_data.get('t_filename')))
+    receiver_file_path = os.path.join(receiver_target, secure_filename(request_data.get('r_filename')))
     transmitter_file = open(transmitter_file_path, 'r').read()
     receiver_file = open(receiver_file_path, 'r').read()
 
@@ -169,7 +169,7 @@ def transact():
     if current_user['anonymous']:
        return _corsify_actual_response(jsonify(success=False))
     upload_folder = 'uploads'
-    subtarget = os.path.join(upload_folder, current_user['username_unique'])
+    subtarget = os.path.join(upload_folder, secure_filename(current_user['username_unique']))
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
     transmitter_target = os.path.join(subtarget, 'transmitter')
@@ -205,7 +205,7 @@ def transact_helper(filename, username, side):
         return "Target not found", 404
     current_user = get_current_user()
     upload_folder = os.path.join(os.path.abspath('.'), 'uploads')
-    subtarget = os.path.join(upload_folder,current_user['username_unique'])
+    subtarget = os.path.join(upload_folder, secure_filename(current_user['username_unique']))
     target = os.path.join(subtarget, side)
     file = os.path.join(target, filename)
     response = make_response(send_file(file))
@@ -218,9 +218,9 @@ def file_upload(target_device):
 
     current_user = get_current_user()
     if current_user['anonymous']:
-       return _corsify_actual_response(jsonify(success=False))
+       return _corsify_actual_response(jsonify(success=False, message="Unauthenticated user"))
     upload_folder = 'uploads'
-    subtarget=os.path.join(upload_folder,current_user['username_unique'])
+    subtarget=os.path.join(upload_folder, secure_filename(current_user['username_unique']))
     if not os.path.isdir(subtarget):
         os.mkdir(subtarget)
     target=os.path.join(subtarget, target_device)
@@ -231,6 +231,7 @@ def file_upload(target_device):
     if filename.endswith('.grc'):
         destination="/".join([target, filename])
         file.save(destination)
+        return _corsify_actual_response(jsonify(success=False, message="Unsupported extension"))
     return _corsify_actual_response(jsonify(success=True))
 
 def _corsify_actual_response(response):
