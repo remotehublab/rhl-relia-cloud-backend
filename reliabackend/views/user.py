@@ -62,9 +62,9 @@ def poll():
     wl_poll()
     current_user = get_current_user()
     if current_user['anonymous'] or current_user['time_left'] <= 0:
-        return _corsify_actual_response(jsonify(success=False, redirectTo=current_app.config['REDIRECT_URL'], user_id="null", session_id="null", locale=None))
+        return _corsify_actual_response(jsonify(success=False, redirect_to=current_app.config['REDIRECT_URL'], user_id=None, session_id=None, locale=None))
 
-    return _corsify_actual_response(jsonify(success=True, redirectTo="null", user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale']))
+    return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale']))
 
 @user_blueprint.route('/scheduler-poll', methods = ['POST'])
 def scheduler_poll():
