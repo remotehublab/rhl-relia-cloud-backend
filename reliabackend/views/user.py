@@ -15,6 +15,12 @@ from reliabackend import weblab
 
 user_blueprint = Blueprint('user', __name__)
 
+@user_blueprint.before_request
+def before_request():
+    current_user = get_current_user()
+    if current_user['anonymous']:
+        return _corsify_actual_response(jsonify(success=False))
+
 @weblab.initial_url
 def initial_url():
     return f"{current_app.config['CDN_URL']}/loader"
