@@ -53,8 +53,8 @@ def manage_files():
     If GET, list all the files that are in the d
     """
     if request.method == 'POST':
-        if 'files' in request.files:
-            for file_object in request.files.getlist('files'):
+        for file_form_name in request.files:
+            for file_object in request.files.getlist(file_form_name):
                 file_object.save(os.path.join(g.user_folder, secure_filename(file_object.filename)))
 
     list_of_files = _get_list_of_files()
