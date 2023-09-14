@@ -13,7 +13,6 @@ weblab = WebLab()
 
 
 def create_app(config_name: str = 'default'):
-
     # Based on Flasky https://github.com/miguelgrinberg/flasky
     app = Flask(__name__)
     app.config.from_object(configurations[config_name])
@@ -26,14 +25,15 @@ def create_app(config_name: str = 'default'):
     redis_store.init_app(app)
     weblab.init_app(app)
 
-
     # Register views
     from .views.main import main_blueprint
     from .views.api import api_blueprint
     from .views.user import user_blueprint
+    from .views.files import files_blueprint
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')
     app.register_blueprint(user_blueprint, url_prefix='/user')
+    app.register_blueprint(files_blueprint, url_prefix='/files')
 
     return app

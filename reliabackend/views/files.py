@@ -31,9 +31,8 @@ from flask import Blueprint, jsonify, request, g, current_app
 
 from reliabackend.auth import get_current_user
 
-
-# Create Flask Blueprint
 files_blueprint = Blueprint('files', __name__)
+
 
 
 @files_blueprint.before_request
@@ -48,25 +47,19 @@ def check_authentication():
     # The user folder where the files will be located
     g.user_folder = os.path.join(upload_folder, secure_filename(user['username_unique']))
 
-
-# if post request is made save files sent by user
 @files_blueprint.route('/', methods=['GET', 'POST'])
 def manage_files():
     """
-    If GET, list all the files that are in the directory
+    If GET, list all the files that are in the d
     """
     if request.method == 'POST':
         if 'files' in request.files:
             for file_object in request.files.getlist('files'):
                 file_object.save(os.path.join(g.user_folder, secure_filename(file_object.filename)))
 
-    ## need to implement these functions??
     list_of_files = _get_list_of_files()
     metadata = _get_metadata(list_of_files)
     return jsonify(success=True, files=list_of_files, metadata=metadata)
-
-
-
 
 @files_blueprint.route('/<filename>', methods=['GET', 'DELETE'])
 def manage_file(filename):
@@ -103,7 +96,6 @@ def manage_file(filename):
         file_metadata['transmitter'] = True
 
     return jsonify(success=True, **file_metadata)
-
 
 @files_blueprint.route('/metadata/', methods=['GET', 'POST'])
 def metadata():
@@ -147,7 +139,6 @@ def _get_list_of_files():
         if os.path.isfile(filename)
     ]
 
-
 def _get_metadata(list_of_files: List[str]):
     """
     Read the metadata file and return the content
@@ -168,7 +159,6 @@ def _get_metadata(list_of_files: List[str]):
         'transmitter': [fname for fname in stored_metadata.get('transmitter', []) if fname in list_of_files]
     }
     return metadata
-
 
 def _set_metadata(metadata: Dict[str, List[str]]):
     """
