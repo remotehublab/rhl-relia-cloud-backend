@@ -46,6 +46,9 @@ def check_authentication():
 
     # The user folder where the files will be located
     g.user_folder = os.path.join(upload_folder, secure_filename(user['username_unique']))
+    if request.method not in ('GET', 'HEAD'):
+        os.makedirs(g.user_folder, exist_ok=True)
+        os.makedirs(os.path.join(g.user_folder, 'metadata'), exist_ok=True)
 
 @files_blueprint.route('/', methods=['GET', 'POST'])
 def manage_files():
