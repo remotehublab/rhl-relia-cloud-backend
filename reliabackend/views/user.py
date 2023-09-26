@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, current_app, request, g, make_response, se
 from weblablib import poll as wl_poll
 
 from reliabackend.auth import get_current_user
+from reliabackend.storage import get_list_of_files, get_metadata, get_stored_file
 from reliabackend import weblab
 
 user_blueprint = Blueprint('user', __name__)
@@ -18,6 +19,81 @@ user_blueprint = Blueprint('user', __name__)
 @weblab.initial_url
 def initial_url():
     return f"{current_app.config['CDN_URL']}/loader"
+
+@user_blueprint.route('/tasks/', methods = ['POST'])
+def add_task_to_scheduler():
+    """
+    This method will call the scheduler creating a new task in the scheduler.
+    It does not expect any data (we rely on the existing metadata), and it will
+    call the scheduler server.
+
+    It will return information such as:
+    {
+        "taskIdentifier": "asdfadsfadfafadsfadfadfafd",
+        "status": "queued", 
+        "message": "Loading successful",
+        "success": true
+    }
+
+    where the frontend is expected to retrieve "success" to know if it worked or not
+    (and report what is the error if it did not work), and then the taskIdentifier
+    so that the rest of the calls of the frontend related to the scheduler go directly
+    to the scheduler.
+    """
+    current_user = get_current_user()
+    if current_user['anonymous']:
+        return _corsify_actual_response(jsonify(success=False))
+    
+    request_data = request.get_json(silent=True, force=True)
+
+    list_of_files = get_list_of_files()
+    metadata = get_metadata(list_of_files)
+    list_of_receiver_files = metadata.get('receiver', [])
+    list_of_transmitter_files = metadata.get('transmitter', [])
+
+    if list_of_receiver_files:
+        receiver_filename: str = list_of_receiver_files[0]
+        receiver_file_content: bytes = get_stored_file(receiver_filename)
+    else:
+        # Temporarily
+        return jsonify(success=False, message="At least one receiver is needed"), 400
+
+    if list_of_transmitter_files:
+        transmitter_filename: str = list_of_transmitter_files[0]
+        transmitter_file_content: bytes = get_stored_file(transmitter_filename)
+    else:
+        # Temporarily
+        return jsonify(success=False, message="At least one transmitter is needed"), 400
+    
+    # Temporarily, assume all files (grc) are text (which they are)
+    transmitter_file_content: str = transmitter_file_content.decode()
+    receiver_file_content: str = receiver_file_content.decode()
+
+    # TODO: in the future add priority
+    priority = None
+
+    user_id = current_user['username_unique']
+
+    object = {
+        "grc_files": {
+            "receiver": {
+                "filename": receiver_filename,
+                "content": receiver_file_content
+            },
+            "transmitter": {
+                "filename": transmitter_filename,
+                "content": transmitter_file_content
+            },
+        },
+        "priority": priority,
+        "task_id": "None", # TODO: remove this
+        "session_id": current_user['session_id']
+    }
+
+    scheduler_token = current_app.config['SCHEDULER_TOKEN']
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    return _corsify_actual_response(jsonify(response_json))
+
 
 @user_blueprint.route('/route/<user_id>', methods = ['POST'])
 def route(user_id):

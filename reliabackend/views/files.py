@@ -30,6 +30,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, request, g, current_app
 
 from reliabackend.auth import get_current_user
+from reliabackend.storage import get_list_of_files, get_metadata, set_metadata
 
 files_blueprint = Blueprint('files', __name__)
 
@@ -60,8 +61,8 @@ def manage_files():
             for file_object in request.files.getlist(file_form_name):
                 file_object.save(os.path.join(g.user_folder, secure_filename(file_object.filename)))
 
-    list_of_files = _get_list_of_files()
-    metadata = _get_metadata(list_of_files)
+    list_of_files = get_list_of_files()
+    metadata = get_metadata(list_of_files)
     return jsonify(success=True, files=list_of_files, metadata=metadata)
 
 @files_blueprint.route('/<filename>', methods=['GET', 'DELETE'])
@@ -69,7 +70,8 @@ def manage_file(filename):
     """
     Given a filename, either GET or DELETE the file.
     """
-    list_of_files = _get_list_of_files()
+    list_of_files = get_list_of_files()
+    metadata = get_metadata(list_of_files)
     sec_filename = secure_filename(filename)
 
     if filename not in list_of_files:
@@ -80,12 +82,25 @@ def manage_file(filename):
             full_filename = os.path.join(g.user_folder, sec_filename)
             if os.path.exists(full_filename):
                 os.remove(full_filename)
+
+            changes_in_metadata = False
+            if sec_filename in metadata.get('retriever', []):
+                metadata['retriever'].remove(sec_filename)
+                changes_in_metadata = True
+
+            if sec_filename in metadata.get('transmitter', []):
+                metadata['transmitter'].remove(sec_filename)
+                changes_in_metadata = True
+
+            if changes_in_metadata:
+                set_metadata(metadata)
+
             return jsonify(success=True)
         else:
             return jsonify(success=False, message="File not found"), 404
 
     # If GET, provide the metadata information
-    full_metadata = _get_metadata(list_of_files)
+    full_metadata = get_metadata(list_of_files)
     file_metadata = {
         'receiver': False,
         'transmitter': False,
@@ -100,13 +115,60 @@ def manage_file(filename):
 
     return jsonify(success=True, **file_metadata)
 
+@files_blueprint.route('/metadata/<filename>', methods=['GET', 'POST'])
+def metadata_by_file(filename):
+    """
+    If GET, list all the files selected (e.g., which ones are for receiver and
+    which ones are for transmitter)
+    """
+    list_of_files = get_list_of_files()
+
+    if filename not in list_of_files:
+        return jsonify(success=False, message="Does not exist"), 404
+    
+    metadata = get_metadata(list_of_files)
+
+    if request.method == 'POST':
+        provided_metadata = request.get_json(silent=True, force=True) or {}
+        is_receiver = provided_metadata.get('receiver')
+        is_transmitter = provided_metadata.get('transmitter')
+
+        changes = False
+
+        was_receiver = filename in metadata.get('receiver', [])
+        was_transmitter = filename in metadata.get('transmitter', [])
+
+        print(is_receiver, is_transmitter, was_receiver, was_transmitter)
+
+        if is_receiver and not was_receiver:
+            metadata['receiver'].append(filename)
+            changes = True
+
+        if not is_receiver and was_receiver:
+            metadata['receiver'].remove(filename)
+            changes = True
+
+        if is_transmitter and not was_transmitter:
+            metadata['transmitter'].append(filename)
+            changes = True
+
+        if not is_transmitter and was_transmitter:
+            metadata['transmitter'].remove(filename)
+            changes = True
+
+        if changes:
+            set_metadata(metadata)
+    is_receiver = filename in metadata.get('receiver', [])
+    is_transmitter = filename in metadata.get('transmitter', [])
+    return jsonify(success=True, receiver=is_receiver, transmitter=is_transmitter)
+
 @files_blueprint.route('/metadata/', methods=['GET', 'POST'])
 def metadata():
     """
     If GET, list all the files selected (e.g., which ones are for receiver and
     which ones are for transmitter)
     """
-    list_of_files = _get_list_of_files()
+    list_of_files = get_list_of_files()
 
     if request.method == 'POST':
         provided_metadata = request.get_json(silent=True, force=True) or {}
@@ -126,48 +188,9 @@ def metadata():
             if transmitter_file in list_of_files:
                 metadata['transmitter'].append(transmitter_file)
 
-        _set_metadata(metadata)
+        set_metadata(metadata)
     else:
-        metadata = _get_metadata(list_of_files)
+        metadata = get_metadata(list_of_files)
 
     return jsonify(success=True, metadata=metadata)
-
-
-def _get_list_of_files():
-    """
-    Take all the files (not folders) in the user folder and return the filename
-    """
-    return [
-        os.path.basename(filename) for filename in glob.glob(f"{g.user_folder}/*")
-        if os.path.isfile(filename)
-    ]
-
-def _get_metadata(list_of_files: List[str]):
-    """
-    Read the metadata file and return the content
-    """
-    metadata_filename = os.path.join(g.user_folder, 'metadata', 'files.json')
-    if os.path.exists(metadata_filename):
-        with open(metadata_filename, 'r') as f:
-            stored_metadata = json.load(f)
-    else:
-        stored_metadata = {
-            'receiver': [],
-            'transmitter': []
-        }
-
-    # Curated list only showing those that exist
-    metadata = {
-        'receiver': [fname for fname in stored_metadata.get('receiver', []) if fname in list_of_files],
-        'transmitter': [fname for fname in stored_metadata.get('transmitter', []) if fname in list_of_files]
-    }
-    return metadata
-
-def _set_metadata(metadata: Dict[str, List[str]]):
-    """
-    Write the metadata file
-    """
-    metadata_filename = os.path.join(g.user_folder, 'metadata', 'files.json')
-    with open(metadata_filename, 'w') as f:
-        json.dump(metadata, f)
 
