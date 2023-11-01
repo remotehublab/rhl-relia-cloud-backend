@@ -87,11 +87,12 @@ def add_task_to_scheduler():
         },
         "priority": priority,
         "task_id": "None", # TODO: remove this
-        "session_id": current_user['session_id']
+        "session_id": current_user['session_id'],
+        "user_id": user_id,
     }
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 
