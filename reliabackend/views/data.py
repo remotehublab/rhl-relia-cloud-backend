@@ -9,9 +9,9 @@ from flask import Blueprint, jsonify, request, g, current_app, make_response
 from reliabackend import redis_store
 from reliabackend.auth import get_current_user
 
-api_blueprint = Blueprint('api', __name__)
+data_blueprint = Blueprint('data', __name__)
 
-@api_blueprint.before_request
+@data_blueprint.before_request
 def check_authentication():
     """
     Here we should check the authentication of the user
@@ -23,11 +23,11 @@ def check_authentication():
     if g.session_id is None:
         return jsonify(success=False, message="Not authenticated")
 
-@api_blueprint.route('/')
+@data_blueprint.route('/')
 def index():
-    return "Welcome to the API"
+    return "Welcome to the Data API"
 
-@api_blueprint.route('/data/current/devices')
+@data_blueprint.route('/current/devices')
 def get_devices():
     devices_key = f'relia:data-uploader:sessions:{g.session_id}:devices'
     devices_set = redis_store.smembers(devices_key)
@@ -39,7 +39,7 @@ def get_devices():
         "success": True
     }))
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/blocks')
+@data_blueprint.route('/current/devices/<device_identifier>/blocks')
 def get_device_blocks(device_identifier):
     blocks_key = f'relia:data-uploader:sessions:{g.session_id}:devices:{device_identifier}:blocks'
     blocks_set = redis_store.smembers(blocks_key)
@@ -57,7 +57,7 @@ def get_device_blocks(device_identifier):
         "success": True
     }))
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/all-blocks')
+@data_blueprint.route('/current/devices/<device_identifier>/all-blocks')
 def get_device_blocks_data(device_identifier):
     last_version = request.args.get('last-version') or 'none'
     current_version = last_version
@@ -108,7 +108,7 @@ def get_device_blocks_data(device_identifier):
     return _corsify_actual_response(response)
 
 
-@api_blueprint.route('/data/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
+@data_blueprint.route('/current/devices/<device_identifier>/blocks/<block_identifier>', methods=['GET', 'POST'])
 def manage_data(device_identifier, block_identifier):
 
     if request.method == 'GET':

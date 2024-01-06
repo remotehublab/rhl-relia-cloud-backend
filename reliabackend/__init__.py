@@ -27,13 +27,17 @@ def create_app(config_name: str = 'default'):
 
     # Register views
     from .views.main import main_blueprint
-    from .views.api import api_blueprint
+    from .views.data import data_blueprint
     from .views.user import user_blueprint
     from .views.files import files_blueprint
 
+    @app.route('/api/')
+    def api_index():
+        return "Welcome to the API"
+
     app.register_blueprint(main_blueprint)
-    app.register_blueprint(api_blueprint, url_prefix='/api')
-    app.register_blueprint(user_blueprint, url_prefix='/user')
-    app.register_blueprint(files_blueprint, url_prefix='/files')
+    app.register_blueprint(data_blueprint, url_prefix='/api/data')
+    app.register_blueprint(user_blueprint, url_prefix='/api/user')
+    app.register_blueprint(files_blueprint, url_prefix='/api/user/files')
 
     return app
