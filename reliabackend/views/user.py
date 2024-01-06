@@ -24,7 +24,7 @@ def before_request():
 
 @weblab.initial_url
 def initial_url():
-    return f"{current_app.config['CDN_URL']}/outerloader"
+    return f"{current_app.config['CDN_URL']}/"
 
 @user_blueprint.route('/tasks/', methods = ['POST'])
 def add_task_to_scheduler():
