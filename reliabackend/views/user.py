@@ -98,7 +98,7 @@ def add_task_to_scheduler():
     }
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 
@@ -137,7 +137,7 @@ def route(user_id):
     }
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')
@@ -159,7 +159,7 @@ def scheduler_poll():
     task_id = request_data.get('task')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/poll/{task_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/poll/{task_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/decode-alt-identifier', methods = ['POST'])
@@ -172,7 +172,7 @@ def decode_alt_identifier():
     alt_id = request_data.get('altIdentifier')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/decode-alt/{alt_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/decode-alt/{alt_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/deletion', methods = ['POST'])
@@ -190,7 +190,7 @@ def task_deletion():
     }
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{task_id}/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/{task_id}/{user_id}", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/search-tasks', methods=['POST'])
@@ -204,7 +204,7 @@ def task_search():
     user_id = request_data.get('user')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/tasks/{task_id}/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/{task_id}/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/get-tasks', methods=['POST'])
@@ -217,7 +217,7 @@ def task_populate():
     user_id = request_data.get('user')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/all-tasks/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/all-tasks/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/complete-tasks', methods=['POST'])
@@ -230,7 +230,7 @@ def task_completion():
     task_id = request_data.get('task')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/complete-tasks/{task_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/complete-tasks/{task_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/error-msgs', methods=['POST'])
@@ -243,7 +243,7 @@ def error_messages():
     user_id = request_data.get('user')
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
-    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}scheduler/user/error-messages/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
+    response_json = requests.get(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/error-messages/{user_id}", headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/transactions')

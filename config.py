@@ -21,7 +21,7 @@ class DevelopmentConfig(Config):
     WEBLAB_PASSWORD = os.environ.get('WEBLAB_PASSWORD') or 'password'
     USE_FAKE_USERS = os.environ.get('USE_FAKE_USERS', '1') in ('1', 'true', 'True')
     CDN_URL = os.environ.get('CDN_URL') or 'http://localhost:3000/'
-    SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL') or 'http://localhost:6002/'
+    SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL') or 'http://localhost:6002'
     SCHEDULER_TOKEN = os.environ.get('SCHEDULER_TOKEN') or 'password'
     REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://localhost:3000/login'
 
