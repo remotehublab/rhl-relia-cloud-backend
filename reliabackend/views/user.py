@@ -1,9 +1,6 @@
 import os
 import glob
-import logging
 import requests
-import json
-import jsonpickle
 
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, current_app, request, g, make_response, send_file, redirect
@@ -11,6 +8,7 @@ from flask import Blueprint, jsonify, current_app, request, g, make_response, se
 from weblablib import poll as wl_poll
 
 from reliabackend.auth import get_current_user
+from reliabackend.device_data import delete_existing_session_data
 from reliabackend.storage import get_list_of_files, get_metadata, get_stored_file
 from reliabackend import weblab
 
@@ -71,6 +69,8 @@ def add_task_to_scheduler():
         # Temporarily
         return jsonify(success=False, message="At least one transmitter is needed"), 400
     
+    delete_existing_session_data(current_user['session_id'])
+
     # Temporarily, assume all files (grc) are text (which they are)
     transmitter_file_content: str = transmitter_file_content.decode()
     receiver_file_content: str = receiver_file_content.decode()
@@ -101,9 +101,9 @@ def add_task_to_scheduler():
     response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
     return _corsify_actual_response(jsonify(response_json))
 
-
 @user_blueprint.route('/route/<user_id>', methods = ['POST'])
 def route(user_id):
+    # TODO: is this method still used?
     current_user = get_current_user()
     if current_user['anonymous']:
         return _corsify_actual_response(jsonify(success=False))

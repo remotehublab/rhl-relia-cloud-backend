@@ -1,7 +1,6 @@
 import json
 import time
 import zlib
-import logging
 
 from collections import OrderedDict
 
