@@ -21,7 +21,17 @@ def get_list_of_files():
     user_folder = _get_user_folder()
     return [
         os.path.basename(filename) for filename in glob.glob(f"{user_folder}/*")
-        if os.path.isfile(filename)
+        if os.path.isfile(filename) 
+    ]
+
+def get_list_of_grc_files():
+    """
+    Take all the files (not folders) in the user folder and return the filename
+    """
+    user_folder = _get_user_folder()
+    return [
+        os.path.basename(filename) for filename in glob.glob(f"{user_folder}/*")
+        if os.path.isfile(filename) and filename.lower().endswith(".grc")
     ]
 
 def get_stored_file(filename) -> Optional[bytes]:
