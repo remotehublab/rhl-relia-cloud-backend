@@ -2,7 +2,7 @@ import os
 import requests
 
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, current_app, request, session
+from flask import Blueprint, jsonify, current_app, request
 
 from weblablib import poll as wl_poll
 
@@ -97,9 +97,6 @@ def add_task_to_scheduler():
 
     scheduler_token = current_app.config['SCHEDULER_TOKEN']
     response_json = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/", json=object, headers={'relia-secret': scheduler_token}, timeout=(30, 30)).json()
-
-    session['task_identifier'] = response_json.get('taskIdentifier')
-
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')
