@@ -61,6 +61,7 @@ def manage_files():
             for file_object in request.files.getlist(file_form_name):
                 if file_object.filename.lower().endswith('.grc'): # Only accept .grc files
                     file_object.save(os.path.join(g.user_folder, secure_filename(file_object.filename)))
+                    # TODO: compile the code
 
     list_of_files = get_list_of_grc_files()
     metadata = get_metadata(list_of_files)
@@ -83,6 +84,10 @@ def manage_file(filename):
             full_filename = os.path.join(g.user_folder, sec_filename)
             if os.path.exists(full_filename):
                 os.remove(full_filename)
+            
+            py_filename = full_filename[:-4] + '.py'
+            if os.path.exists(py_filename):
+                os.remove(py_filename)
 
             changes_in_metadata = False
             if sec_filename in metadata.get('retriever', []):

@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 import requests
 
 from werkzeug.utils import secure_filename
@@ -56,14 +57,27 @@ def add_task_to_scheduler():
 
     if list_of_receiver_files:
         receiver_filename: str = list_of_receiver_files[0]
-        receiver_file_content: bytes = get_stored_file(receiver_filename)
+        py_receiver_filename = receiver_filename[:-4] + '.py'
+        receiver_file_content: Optional[bytes] = get_stored_file(py_receiver_filename)
+        # If the Python version is available, get it. Otherwise, use the grc version
+        if receiver_file_content is None:
+            receiver_file_content: bytes = get_stored_file(receiver_filename)
+            receiver_file_type: str = 'grc'
+        else:
+            receiver_file_type: str = 'py'
     else:
         # Temporarily
         return jsonify(success=False, message="At least one receiver is needed"), 400
 
     if list_of_transmitter_files:
         transmitter_filename: str = list_of_transmitter_files[0]
-        transmitter_file_content: bytes = get_stored_file(transmitter_filename)
+        py_transmitter_filename = transmitter_filename[:-4] + '.py'
+        transmitter_file_content: Optional[bytes] = get_stored_file(py_transmitter_filename)
+        if transmitter_file_content is None:
+            transmitter_file_content: bytes = get_stored_file(transmitter_filename)
+            transmitter_file_type: str = 'grc'
+        else:
+            transmitter_file_type: str = 'py'
     else:
         # Temporarily
         return jsonify(success=False, message="At least one transmitter is needed"), 400
@@ -83,11 +97,13 @@ def add_task_to_scheduler():
         "grc_files": {
             "receiver": {
                 "filename": receiver_filename,
-                "content": receiver_file_content
+                "content": receiver_file_content,
+                "type": receiver_file_type
             },
             "transmitter": {
                 "filename": transmitter_filename,
-                "content": transmitter_file_content
+                "content": transmitter_file_content,
+                "type": transmitter_file_type
             },
         },
         "priority": priority,
