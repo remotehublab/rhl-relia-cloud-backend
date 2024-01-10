@@ -13,6 +13,9 @@ class Config:
     SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL')
     SCHEDULER_TOKEN = os.environ.get('SCHEDULER_TOKEN')
     REDIRECT_URL = os.environ.get('REDIRECT_URL')
+    USE_FIREJAIL = os.environ.get('USE_FIREJAIL', '0') in ('1', 'true', 'True')
+    FIREJAIL_IP_ADDRESS = os.environ.get('FIREJAIL_IP_ADDRESS') or '10.10.20.2'
+    FIREJAIL_INTERFACE = os.environ.get('FIREJAIL_INTERFACE') or 'br0'
 
 class DevelopmentConfig(Config):
     DEBUG = True

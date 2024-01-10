@@ -21,15 +21,14 @@ Where files.json has the following structure:
 }
 
 """
-import json
 import os
-import glob
-from typing import Dict, List
+import traceback
 
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, request, g, current_app
 
 from reliabackend.auth import get_current_user
+from reliabackend.executions import compile_grc_file
 from reliabackend.storage import get_list_of_files, get_list_of_grc_files, get_metadata, set_metadata
 
 files_blueprint = Blueprint('files', __name__)
@@ -60,12 +59,20 @@ def manage_files():
         for file_form_name in request.files:
             for file_object in request.files.getlist(file_form_name):
                 if file_object.filename.lower().endswith('.grc'): # Only accept .grc files
-                    file_object.save(os.path.join(g.user_folder, secure_filename(file_object.filename)))
-                    # TODO: compile the code
+                    real_filename = os.path.join(g.user_folder, secure_filename(file_object.filename))
+                    file_object.save(real_filename)
+                    try:
+                        compile_grc_file(real_filename)
+                    except Exception as err:
+                        print(f"Error compiling {real_filename}")
+                        print(err)
+                        print(traceback.format_exc())
+                        print(traceback.print_exc(), flush=True)
 
     list_of_files = get_list_of_grc_files()
     metadata = get_metadata(list_of_files)
     return jsonify(success=True, files=list_of_files, metadata=metadata)
+
 
 @files_blueprint.route('/<filename>', methods=['GET', 'DELETE'])
 def manage_file(filename):
