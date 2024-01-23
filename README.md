@@ -12,4 +12,4 @@ $ pip install -r requirements.txt
 And then, every time you want to run it
 
 $ . env/bin/activate
-$ flask run
+$ flask run --with-threads --exclude-patterns "*/uploads/*"
