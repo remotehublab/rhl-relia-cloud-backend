@@ -13,6 +13,7 @@ def get_current_user():
             'username_unique': "m4fxkAuTr9hnw_xnN1aE4UgRAvMAYBghDfzqsUYRr5g",
             'session_id': "my-session-id",
             'anonymous': False,
+            'active': True,
             'time_left': 600, # seconds (10 minutes)
             'locale': 'en', # English
             'redirect_to': 'https://rhlab.ece.uw.edu',
@@ -23,6 +24,7 @@ def get_current_user():
             'username_unique': None,
             'session_id': None,
             'anonymous': weblab_user.is_anonymous,
+            'active': weblab_user.active,
             'time_left': 0,
             'locale': 'en',
             'redirect_to': None,
@@ -31,6 +33,7 @@ def get_current_user():
     return {
         'username_unique': weblab_user.username_unique,
         'anonymous': weblab_user.is_anonymous,
+        'active': weblab_user.active,
         'time_left': weblab_user.time_left,
         'locale': weblab_user.locale,
         'session_id': weblab_user.session_id,

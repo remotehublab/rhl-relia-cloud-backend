@@ -18,7 +18,11 @@ user_blueprint = Blueprint('user', __name__)
 def before_request():
     current_user = get_current_user()
     if current_user['anonymous']:
-        return _corsify_actual_response(jsonify(success=False))
+        return _corsify_actual_response(jsonify(success=False, redirect_to=current_app.config['REDIRECT_URL'], user_id=None, session_id=None, locale=None))
+
+    if not current_user['active'] or current_user['time_left'] <= 0:
+        return _corsify_actual_response(jsonify(success=False, redirect_to=current_user['redirect_to'], user_id=None, session_id=None, locale=None))
+
 
 @weblab.initial_url
 def initial_url():
@@ -116,12 +120,11 @@ def add_task_to_scheduler():
     return _corsify_actual_response(jsonify(response_json))
 
 @user_blueprint.route('/poll')
-def poll():
+def user_poll():
     wl_poll()
-    current_user = get_current_user()
-    if current_user['anonymous'] or current_user['time_left'] <= 0:
-        return _corsify_actual_response(jsonify(success=False, redirect_to=current_app.config['REDIRECT_URL'], user_id=None, session_id=None, locale=None))
 
+    current_user = get_current_user()  
+    # We do not verify if the user is anonymous because it is done in the before_request part
     return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale']))
 
 @user_blueprint.route('/upload/<target_device>', methods=['POST'])

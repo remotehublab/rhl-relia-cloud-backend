@@ -26,7 +26,7 @@ class DevelopmentConfig(Config):
     CDN_URL = os.environ.get('CDN_URL') or 'http://localhost:3000/'
     SCHEDULER_BASE_URL = os.environ.get('SCHEDULER_BASE_URL') or 'http://localhost:6002'
     SCHEDULER_TOKEN = os.environ.get('SCHEDULER_TOKEN') or 'password'
-    REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://localhost:3000/login'
+    REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'https://rhlab.ece.uw.edu/projects/relia/'
 
 class StagingConfig(Config):
     DEBUG = False
