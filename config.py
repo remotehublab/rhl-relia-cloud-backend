@@ -8,6 +8,8 @@ class Config:
     WEBLAB_TIMEOUT = int(os.environ.get('WEBLAB_TIMEOUT') or '7200')
     WEBLAB_REDIS_URL = os.environ.get('WEBLAB_REDIS_URL') or os.environ.get('REDIS_URL') or "redis://localhost/0"
     WEBLAB_CALLBACK_URL = '/weblab/relia-callback'
+    SCRIPT_NAME = os.environ.get('SCRIPT_NAME') or '/'
+    SESSION_COOKIE_PATH = os.environ.get('SESSION_COOKIE_PATH') or '/'
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
     USE_FAKE_USERS = False
     CDN_URL = os.environ.get('CDN_URL')
