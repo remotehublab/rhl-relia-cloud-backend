@@ -69,9 +69,12 @@ def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
                     f"read-only /home/{user}/relia-blocks",
                     f"whitelist /home/{user}/.gnuradio/prefs",
                     f"read-only /home/{user}/.gnuradio/prefs",
-                    f"whitelist {directory}",
                     f"read-only /home/{user}/.bashrc",
                     f"read-only /home/{user}/.profile",
+                    f"whitelist /home/{user}/.grc_gnuradio",
+                    f"read-only /home/{user}/.grc_gnuradio",
+                    f"whitelist /home/{user}/.cache/grc_gnuradio",
+                    f"whitelist {directory}",
                 ])
 
         open(os.path.join(directory, 'firejail.profile'), 'w').write(profile)
