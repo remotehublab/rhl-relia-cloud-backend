@@ -52,12 +52,9 @@ def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
     """
     use_firejail = current_app.config['USE_FIREJAIL']
     if use_firejail:
-        ip_address = current_app.config['FIREJAIL_IP_ADDRESS']
-        interface = current_app.config['FIREJAIL_INTERFACE']
         user = os.getenv('USER') or 'relia'
         profile = '\n'.join([
-                    f"net {interface}",
-                    f"ip {ip_address}",
+                    f"net none",
                     f"whitelist /home/{user}/.gr_fftw_wisdom",
                     f"whitelist /home/{user}/relia-blocks",
                     f"read-only /home/{user}/relia-blocks",
@@ -67,19 +64,7 @@ def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
                     f"read-only /home/{user}/.bashrc",
                     f"read-only /home/{user}/.profile",
                 ])
-        # net br0
-        # ip 10.10.20.2
 
-        # include /etc/firejail/disable-common.inc
-        # include /etc/firejail/disable-devel.inc
-        # include /etc/firejail/disable-exec.inc
-        # include /etc/firejail/disable-passwdmgr.inc
-        # include /etc/firejail/disable-xdg.inc
-        # whitelist /tmp/relia-*
-
-        # blacklist /home/relia/relia-gr-runner
-        # read-only /home/relia/.bashrc
-        # read-only /home/relia/.profile
         open(os.path.join(directory, 'firejail.profile'), 'w').write(profile)
 
         print(f"[{time.asctime()}] firejail.profile generated at {os.path.join(directory, 'firejail.profile')}")

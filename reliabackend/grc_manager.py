@@ -57,7 +57,15 @@ class GrcManager:
         """
         for block in self.grc_content['blocks']:
             if block['id'] in ('iio_pluto_sink', 'iio_pluto_source'):
-                block['parameters']['uri'] = f'"{os.environ.get("ADALM_PLUTO_IP_ADDRESS")}"'
+                block['parameters']['uri'] = '"**RELIA_REPLACE_WITH_ADALM_PLUTO_IP_ADDRESS**"'
+
+    def _apply_red_pitaya(self):
+        """
+        If there is any Red Pitaya module, reassign the IP address to the configured one.
+        """
+        for block in self.grc_content['blocks']:
+            if block['id'] in ('red_pitaya_sink', 'red_pitaya_source'):
+                block['parameters']['addr'] = '"**RELIA_REPLACE_WITH_RED_PITAYA_IP_ADDRESS**"'
 
     def process(self):
         """
@@ -68,6 +76,7 @@ class GrcManager:
 
         self._apply_qt2relia_conversions()
         self._apply_adalm_pluto()
+        self._apply_red_pitaya()
 
     def _apply_file_conversions(self, directory: str):
         """
