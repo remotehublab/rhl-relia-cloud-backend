@@ -14,7 +14,10 @@ from reliabackend.grc_manager import GrcManager
 
 
 def compile_grc_file(grc_filename: str):
-    grc_manager = GrcManager(grc_serialized_content=open(grc_filename).read())
+    print(f"[{time.asctime()}] Starting compilation for file {grc_filename}", file=sys.stderr, flush=True)
+    print(f"[{time.asctime()}] Starting compilation for file {grc_filename}", file=sys.stdout, flush=True)
+
+    grc_manager = GrcManager(grc_serialized_content=open(grc_filename).read(), target_filename='target_file')
     with tempfile.TemporaryDirectory() as tempdir:
         full_grc_filename = os.path.join(tempdir, 'user_file.grc')
         grc_manager.save(tempdir, 'user_file.grc')
@@ -45,6 +48,12 @@ def compile_grc_file(grc_filename: str):
             uploads_py_filename = grc_filename[:-4] + '.py'
             py_content = open(tmp_py_filename, 'r').read()
             open(uploads_py_filename, 'w').write(py_content)
+            print(f"[{time.asctime()}] File {tmp_py_filename} found, length={len(py_content)}")
+        else:
+            print(f"[{time.asctime()}] File {tmp_py_filename} not found")
+        
+        print(f"[{time.asctime()}] Compilation process finished", file=sys.stderr, flush=True)
+        print(f"[{time.asctime()}] Compilation process finished", file=sys.stdout, flush=True)
             
 def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
     """
