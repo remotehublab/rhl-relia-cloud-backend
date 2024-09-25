@@ -74,6 +74,7 @@ def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
                     f"whitelist /home/{user}/.grc_gnuradio",
                     f"read-only /home/{user}/.grc_gnuradio",
                     f"whitelist /home/{user}/.cache/grc_gnuradio",
+                    f"whitelist /home/{user}/red-pitaya-notes",
                     f"whitelist {directory}",
                 ])
 
