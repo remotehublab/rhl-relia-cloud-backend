@@ -66,7 +66,7 @@ class GrcManager:
         for block in self.grc_content['blocks']:
             if block['id'] in ('red_pitaya_sink', 'red_pitaya_source'):
                 block['parameters']['addr'] = '"**RELIA_REPLACE_WITH_RED_PITAYA_IP_ADDRESS**"'
-                block['parameters']['rate'] = '"**RELIA_REPLACE_WITH_RED_PITAYA_RATE**"'
+                block['parameters']['rate'] = 128_95_205_60_128_95_196_55 # Magic number with teh IP addresses of both RHLab and RELIA
 
     def process(self):
         """
