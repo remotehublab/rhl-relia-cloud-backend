@@ -1,4 +1,6 @@
 import requests
+import traceback
+
 from flask import Blueprint, jsonify, current_app, request
 from reliabackend.auth import get_current_user
 
@@ -44,12 +46,23 @@ def conversations(conversation_id: str):
         'context': context,
         'agent': agent,
         'anonymizedReservationId': anonymized_reservation_id
-    }).json()
+    })
+
+    try:
+        response.raise_for_status()
+    except Exception as err:
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': f"Error calling LabsLand: {err}",
+        })
+
+    response_json = response.json()
 
     return jsonify({
-        'success': response.get('success'),
-        'messageId': response.get('messageId'),
-        'messageUrl': response.get('messageUrl')
+        'success': response_json.get('success'),
+        'messageId': response_json.get('messageId'),
+        'messageUrl': response_json.get('messageUrl')
     })
 
 
