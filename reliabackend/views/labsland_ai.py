@@ -32,6 +32,7 @@ def conversations(conversation_id: str):
 
     request_conversations = current_user.get('conversations') or {}
     anonymized_reservation_id = request_conversations.get("anonymizedReservationId")
+    agent = request_conversations.get("agent")
 
     session_id = current_user['session_id']
 
@@ -40,6 +41,7 @@ def conversations(conversation_id: str):
         'conversationId': conversation_id,
         'message': message,
         'context': context,
+        'agent': agent,
         'anonymizedReservationId': anonymized_reservation_id
     }).json()
 
