@@ -30,6 +30,7 @@ def create_app(config_name: str = 'default'):
     from .views.data import data_blueprint
     from .views.user import user_blueprint
     from .views.files import files_blueprint
+    from .views.labsland_ai import labsland_ai_blueprint
 
     @app.route('/api/')
     def api_index():
@@ -39,5 +40,6 @@ def create_app(config_name: str = 'default'):
     app.register_blueprint(data_blueprint, url_prefix='/api/data')
     app.register_blueprint(user_blueprint, url_prefix='/api/user')
     app.register_blueprint(files_blueprint, url_prefix='/api/user/files')
+    app.register_blueprint(labsland_ai_blueprint, url_prefix='/api/ai')
 
     return app
