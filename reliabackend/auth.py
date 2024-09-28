@@ -17,6 +17,7 @@ def get_current_user():
             'time_left': 600, # seconds (10 minutes)
             'locale': 'en', # English
             'redirect_to': 'https://rhlab.ece.uw.edu',
+            'conversations': None,
         }
 
     if weblab_user.is_anonymous or not weblab_user.active:
@@ -28,6 +29,7 @@ def get_current_user():
             'time_left': 0,
             'locale': 'en',
             'redirect_to': None,
+            'conversations': None,
         }
 
     return {
@@ -38,4 +40,5 @@ def get_current_user():
         'locale': weblab_user.locale,
         'session_id': weblab_user.session_id,
         'redirect_to': weblab_user.back,
+        'conversations': weblab_user.request_server_data.get('request.conversations'),
     }

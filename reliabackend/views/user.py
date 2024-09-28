@@ -123,9 +123,11 @@ def add_task_to_scheduler():
 def user_poll():
     wl_poll()
 
+
+
     current_user = get_current_user()  
     # We do not verify if the user is anonymous because it is done in the before_request part
-    return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale']))
+    return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale'], conversations=current_user['conversations']))
 
 @user_blueprint.route('/upload/<target_device>', methods=['POST'])
 def file_upload(target_device):
