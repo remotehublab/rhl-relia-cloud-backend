@@ -10,3 +10,4 @@ redis==4.3.4
 Werkzeug==2.2.2
 weblablib==0.5.7
 jsonpickle==3.0.1
+requests==2.28.1
