@@ -35,7 +35,7 @@ def conversations(conversation_id: str):
 
     session_id = current_user['session_id']
 
-    response = request.post("https://labs.labsland.com/ai/external-labs/conversations", json={
+    response = request.post(f"https://labs.labsland.com/ai/conversations/external-labs/{conversation_id}", json={
         'sessionId': session_id,
         'conversationId': conversation_id,
         'message': message,
