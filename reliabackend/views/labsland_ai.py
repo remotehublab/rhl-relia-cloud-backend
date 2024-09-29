@@ -54,7 +54,7 @@ def conversations(conversation_id: str):
         traceback.print_exc()
         return jsonify({
             'success': False,
-            'message': f"Error calling LabsLand: {err}",
+            'message': f"Error calling LabsLand: {err} {response.text}",
         })
 
     response_json = response.json()
