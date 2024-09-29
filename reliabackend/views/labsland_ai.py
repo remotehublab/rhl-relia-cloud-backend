@@ -1,3 +1,4 @@
+import sys
 import requests
 import traceback
 
@@ -37,8 +38,11 @@ def conversations(conversation_id: str):
     anonymized_reservation_id = request_conversations.get("anonymizedReservationId")
     agent = request_conversations.get("agent")
 
-    print(weblab_user.request_server_data.get)
+    from weblablib import weblab_user
+    print(weblab_user.request_server_data)
     print(anonymized_reservation_id, flush=True)
+    print(weblab_user.request_server_data, file=sys.stderr)
+    print(anonymized_reservation_id, file=sys.stderr,flush=True)
     session_id = current_user['session_id']
 
     response = requests.post(f"https://api.labsland.com/ai/conversations/external-labs/{conversation_id}", json={
