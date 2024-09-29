@@ -52,9 +52,11 @@ def conversations(conversation_id: str):
         response.raise_for_status()
     except Exception as err:
         traceback.print_exc()
+        print(f"Error calling LabsLand AI Assistant: {err} {response.text}", file=sys.stdout, flush=True)
+        print(f"Error calling LabsLand AI Assistant: {err} {response.text}", file=sys.stderr, flush=True)
         return jsonify({
             'success': False,
-            'message': f"Error calling LabsLand: {err} {response.text}",
+            'message': f"Error calling LabsLand AI Assistant: {err} {response.text}",
         })
 
     response_json = response.json()
