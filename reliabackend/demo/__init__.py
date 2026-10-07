@@ -11,12 +11,23 @@ def demo_for_server_data(server_data):
         return {'variant': VARIANT, 'readonly': True, 'tones': TONES}
     return None
 
-def flowgraphs(tone='middle'):
+def flowgraphs(tone='middle', locale='en'):
     if tone not in TONES:
         raise ValueError('Choose one of the three demo tones')
+    language = str(locale or 'en').replace('_', '-').split('-')[0]
+    labels = {
+        'en': ('Received RF spectrum', 'Frequency', 'Relative power'),
+        'es': ('Espectro de RF recibido', 'Frecuencia', 'Potencia relativa'),
+        'pt': ('Espectro de RF recebido', 'Frequência', 'Potência relativa'),
+    }.get(language, ('Received RF spectrum', 'Frequency', 'Relative power'))
     graphs = {}
     for side, filename in (('receiver', 'tone_rx.grc'), ('transmitter', 'tone_tx.grc')):
         graph = yaml.safe_load((Path(__file__).parent / filename).read_text())
+        if side == 'receiver':
+            for block in graph['blocks']:
+                if block['id'] == 'qtgui_vector_sink_f':
+                    for key, text in zip(('name', 'x_axis_label', 'y_axis_label'), labels):
+                        block['parameters'][key] = repr(text)
         if side == 'transmitter':
             for block in graph['blocks']:
                 if block['id'] == 'analog_sig_source_x':

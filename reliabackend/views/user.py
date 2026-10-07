@@ -60,7 +60,7 @@ def add_task_to_scheduler():
         if not isinstance(request_data, dict):
             return jsonify(success=False, message="Expected demo settings"), 400
         try:
-            graphs = flowgraphs(request_data.get('tone', 'middle'))
+            graphs = flowgraphs(request_data.get('tone', 'middle'), current_user.get('locale', 'en'))
         except (TypeError, ValueError):
             return jsonify(success=False, message="Choose one of the three demo tones"), 400
         delete_existing_session_data(current_user['session_id'])

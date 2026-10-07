@@ -1,3 +1,4 @@
+import yaml
 import unittest
 from unittest.mock import Mock, patch
 from flask import Flask
@@ -15,6 +16,12 @@ class DemoTests(unittest.TestCase):
         self.app.register_blueprint(data_blueprint, url_prefix='/api/data')
         self.client = self.app.test_client()
         self.user = {'anonymous':False,'active':True,'time_left':60,'username_unique':'demo','session_id':'test-session','demo':{'variant':'pluto-tone-spectrum'}}
+
+    def test_demo_chart_labels_follow_session_locale(self):
+        for locale, expected in [('en', 'Frequency'), ('es', 'Frecuencia'), ('pt_BR', 'Frequência'), ('unknown', 'Frequency')]:
+            graph = yaml.safe_load(flowgraphs('middle', locale)['receiver']['content'])
+            sink = next(block for block in graph['blocks'] if block['id'] == 'qtgui_vector_sink_f')
+            self.assertEqual(sink['parameters']['x_axis_label'], repr(expected))
 
     def test_only_trusted_server_demo_variant_enables_demo(self):
         self.assertIsNone(demo_for_server_data({}))
