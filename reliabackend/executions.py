@@ -5,6 +5,7 @@ import glob
 import time
 import tempfile
 import subprocess
+from pathlib import Path
 
 from typing import List
 
@@ -14,15 +15,19 @@ from reliabackend.grc_manager import GrcManager
 
 
 def compile_grc_file(grc_filename: str):
+    uploads_py_filename = grc_filename[:-4] + '.py'
+    # A failed replacement upload must never execute a previous cached build.
+    if os.path.exists(uploads_py_filename):
+        os.remove(uploads_py_filename)
     print(f"[{time.asctime()}] Starting compilation for file {grc_filename}", file=sys.stderr, flush=True)
     print(f"[{time.asctime()}] Starting compilation for file {grc_filename}", file=sys.stdout, flush=True)
 
-    grc_manager = GrcManager(grc_serialized_content=open(grc_filename).read(), target_filename='target_file')
+    grc_manager = GrcManager(grc_serialized_content=Path(grc_filename).read_text(), target_filename='target_file')
     with tempfile.TemporaryDirectory() as tempdir:
         full_grc_filename = os.path.join(tempdir, 'user_file.grc')
         grc_manager.save(tempdir, 'user_file.grc')
 
-        open(os.path.join(tempdir, 'relia.json'), 'w').write(json.dumps({
+        (Path(tempdir) / 'relia.json').write_text(json.dumps({
                 "uploader_base_url": "http://localhost:6001",
                 "session_id": "my-session-id",
                 "task_id": "my-task-id",
@@ -33,27 +38,33 @@ def compile_grc_file(grc_filename: str):
 
         p: subprocess.Popen = run_in_sandbox(command, tempdir)
         try:
-            p.wait(timeout=10)
+            stdout, stderr = p.communicate(timeout=10)
         except subprocess.TimeoutExpired:
             p.terminate()
-            p.wait()
+            try:
+                p.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                p.kill()
+                p.communicate()
             return False
-        
-        stdout, stderr = p.communicate()
         print("STDOUT:", stdout)
         print("STDERR:", stderr)
+
+        if p.returncode != 0:
+            return False
         
         tmp_py_filename = os.path.join(tempdir, 'target_file.py')
         if os.path.exists(tmp_py_filename):
-            uploads_py_filename = grc_filename[:-4] + '.py'
-            py_content = open(tmp_py_filename, 'r').read()
-            open(uploads_py_filename, 'w').write(py_content)
+            py_content = Path(tmp_py_filename).read_text()
+            Path(uploads_py_filename).write_text(py_content)
             print(f"[{time.asctime()}] File {tmp_py_filename} found, length={len(py_content)}")
         else:
             print(f"[{time.asctime()}] File {tmp_py_filename} not found")
+            return False
         
         print(f"[{time.asctime()}] Compilation process finished", file=sys.stderr, flush=True)
         print(f"[{time.asctime()}] Compilation process finished", file=sys.stdout, flush=True)
+        return True
             
 def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
     """
@@ -87,7 +98,7 @@ def run_in_sandbox(command: List[str], directory: str) -> subprocess.Popen:
         print(f"[{time.asctime()}] The contents of the folder now are:")
         print(glob.glob(f"{directory}/*"))
 
-        firejail_command = ['firejail', '--profile=firejail.profile']
+        firejail_command = ['firejail', '--deterministic-exit-code', '--deterministic-shutdown', '--profile=firejail.profile']
         firejail_command.extend(command)
         print(f"[{time.asctime()}] Running command inside the firejail sandbox: {' '.join(command)}")
         print(f"[{time.asctime()}] So in reality it looks like: {' '.join(firejail_command)}")

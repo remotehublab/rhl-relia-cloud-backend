@@ -11,6 +11,7 @@ from reliabackend.auth import get_current_user
 from reliabackend.device_data import delete_existing_session_data
 from reliabackend.storage import get_list_of_files, get_metadata, get_stored_file
 from reliabackend import weblab
+from reliabackend.demo import flowgraphs
 
 user_blueprint = Blueprint('user', __name__)
 
@@ -53,6 +54,25 @@ def add_task_to_scheduler():
         return _corsify_actual_response(jsonify(success=False))
     
     request_data = request.get_json(silent=True, force=True)
+    if current_user.get('demo'):
+        if request_data is None and not request.data:
+            request_data = {}
+        if not isinstance(request_data, dict):
+            return jsonify(success=False, message="Expected demo settings"), 400
+        try:
+            graphs = flowgraphs(request_data.get('tone', 'middle'))
+        except (TypeError, ValueError):
+            return jsonify(success=False, message="Choose one of the three demo tones"), 400
+        delete_existing_session_data(current_user['session_id'])
+        payload = {'grc_files': graphs, 'priority': None,
+                   'session_id': current_user['session_id'], 'user_id': current_user['username_unique']}
+        try:
+            result = requests.post(f"{current_app.config['SCHEDULER_BASE_URL']}/scheduler/user/tasks/", json=payload,
+                                   headers={'relia-secret': current_app.config['SCHEDULER_TOKEN']}, timeout=(5, 15))
+            result.raise_for_status()
+            return _corsify_actual_response(jsonify(result.json()))
+        except (requests.RequestException, ValueError):
+            return jsonify(success=False, message="The measurement service is unavailable. Please try again."), 503
 
     list_of_files = get_list_of_files()
     metadata = get_metadata(list_of_files)
@@ -127,10 +147,12 @@ def user_poll():
 
     current_user = get_current_user()  
     # We do not verify if the user is anonymous because it is done in the before_request part
-    return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale'], conversations=current_user['conversations']))
+    return _corsify_actual_response(jsonify(success=True, redirect_to=current_user['redirect_to'], user_id=current_user['username_unique'], session_id=current_user['session_id'], locale=current_user['locale'], conversations=current_user['conversations'], demo=current_user.get('demo')))
 
 @user_blueprint.route('/upload/<target_device>', methods=['POST'])
 def file_upload(target_device):
+    if get_current_user().get('demo'):
+        return jsonify(success=False, message="This demo uses a fixed flowgraph"), 403
     if target_device not in ('transmitter', 'receiver'):
         return "Target not found", 404
 

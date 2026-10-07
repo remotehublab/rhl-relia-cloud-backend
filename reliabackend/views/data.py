@@ -19,6 +19,12 @@ def check_authentication():
     """
     current_user_data = get_current_user()
 
+    if not current_user_data['active'] or current_user_data['time_left'] <= 0:
+        return jsonify(success=False, message="Session has ended"), 401
+
+    if current_user_data.get('demo') and request.method == 'POST':
+        return jsonify(success=False, message="This demo uses a fixed flowgraph"), 403
+
     g.session_id = current_user_data['session_id']
     if g.session_id is None:
         return jsonify(success=False, message="Not authenticated")
@@ -45,10 +51,8 @@ def get_device_blocks(task_id, device_identifier):
     blocks_set = redis_store.smembers(blocks_key)
     block_names = [ block_name.decode() for block_name in (blocks_set or ()) ]
 
-    for block_identifier in block_names:
-        block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
-        if redis_store.get(block_alive_key) != b'1':
-            block_names.remove(block_identifier)
+    block_names = [block_identifier for block_identifier in block_names
+                   if redis_store.get(f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:alive') == b'1']
 
     return _corsify_actual_response(jsonify({
         "blocks": sorted(block_names),
@@ -70,14 +74,15 @@ def get_device_blocks_data(task_id, device_identifier):
             # block_identifier: data
         }
 
+        live_blocks = []
         for block_identifier in block_names:
             block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
             if redis_store.get(block_alive_key) != b'1':
-                block_names.remove(block_identifier)
                 continue
 
             gnuradio2web_block_key = f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:from-gnuradio'
 
+            data = None
             empty = False
             while not empty:
                 newest_data = redis_store.lpop(gnuradio2web_block_key)
@@ -85,7 +90,10 @@ def get_device_blocks_data(task_id, device_identifier):
                     empty = True
                 else:
                     data = newest_data
-            block_data[block_identifier] = data
+            if data is not None:
+                live_blocks.append(block_identifier)
+                block_data[block_identifier] = data.decode() if isinstance(data, bytes) else data
+        block_names = live_blocks
 
         response_dict = OrderedDict()
         response_dict['success'] = True
@@ -146,7 +154,7 @@ def manage_data(task_id, device_identifier, block_identifier):
 
         block_alive_key = f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:alive'
         if redis_store.get(block_alive_key) != b'1':
-            return _corsify_actual_response(jsonify(success=False, message="Block does not exist"), 404)
+            return _corsify_actual_response(jsonify(success=False, message="Block does not exist")), 404
 
         web2gnuradio_block_key = f'relia:data-uploader:sessions:{g.session_id}:tasks:{task_id}:devices:{device_identifier}:blocks:{block_identifier}:to-gnuradio'
 

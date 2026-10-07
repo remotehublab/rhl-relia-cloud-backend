@@ -38,8 +38,12 @@ files_blueprint = Blueprint('files', __name__)
 @files_blueprint.before_request
 def check_authentication():
     user = get_current_user()
-    if user['anonymous']:
-        return jsonify(success=False)
+    if user['anonymous'] or not user['active'] or user['time_left'] <= 0:
+        return jsonify(success=False, message="Session ended"), 401
+    if user.get('demo'):
+        if request.method not in ('GET', 'HEAD'):
+            return jsonify(success=False, message="This demo uses a fixed flowgraph"), 403
+        return jsonify(success=True, files=[], metadata={'receiver': [], 'transmitter': []})
 
     # The folder configured in the config file where the files will be stored
     upload_folder = os.path.abspath(current_app.config['UPLOAD_FOLDER'])
@@ -97,8 +101,8 @@ def manage_file(filename):
                 os.remove(py_filename)
 
             changes_in_metadata = False
-            if sec_filename in metadata.get('retriever', []):
-                metadata['retriever'].remove(sec_filename)
+            if sec_filename in metadata.get('receiver', []):
+                metadata['receiver'].remove(sec_filename)
                 changes_in_metadata = True
 
             if sec_filename in metadata.get('transmitter', []):

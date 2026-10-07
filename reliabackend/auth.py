@@ -1,6 +1,7 @@
 from flask import current_app
 
 from weblablib import weblab_user
+from reliabackend.demo import demo_for_server_data
 
 def get_current_user():
     """
@@ -41,4 +42,5 @@ def get_current_user():
         'session_id': weblab_user.session_id,
         'redirect_to': weblab_user.back,
         'conversations': weblab_user.request_server_data.get('request.conversations'),
+        'demo': demo_for_server_data(weblab_user.request_server_data),
     }
